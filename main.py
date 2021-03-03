@@ -6,3 +6,4 @@ plt.ylabel('some numbers')
 plt.show()
 
 print("Francesco is gay")
+print("Franci baby sukko mi cocco")
