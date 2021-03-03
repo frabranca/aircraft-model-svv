@@ -7,8 +7,9 @@ meters = 0.0254  # multiply to get meters
 kg = 0.453592
 g = 9.81
 m_dot = 0.048  # kg/s
-t = np.arange(0,3000,1)# s
-cg_bem = 3  # m
+t = np.arange(0,3600,1)# s
+cg_bem = 7.17  # m [~7.15 lower]
+req = [276.1*meters, 285.8*meters]
 
 d = pd.read_csv('fuelmass.txt', header=None, delimiter= '&')
 mf = np.hstack((d[0],d[2])) * kg  # in kg
@@ -16,7 +17,6 @@ mf_x = np.hstack((d[1],d[3]))*100 * kg * meters  # kg*s
 x = mf_x/mf  # m
 
 x_mf = sc.interpolate.interp1d(mf,x,kind='cubic')  # m, f(kg)
-
 
 # --------------------------------------------------------
 #                           BEM
@@ -27,7 +27,10 @@ BEM = 60500 / g  # [kg]  = to standard aircraft mass?
 #                           FUEL
 # --------------------------------------------------------
 block_fuel = 2700 * kg
-
+def getfuelx(time):
+    mass_fuel = block_fuel-m_dot*time
+    x = x_mf(mass_fuel)
+    return x
 
 # --------------------------------------------------------
 #                           PAYLOAD
@@ -78,10 +81,7 @@ def mass(time):
     m = BEM + sum(weight) + block_fuel-m_dot*time
     return m
 
-def getfuelx(time):
-    mass_fuel = block_fuel-m_dot*time
-    x = x_mf(mass_fuel)
-    return x
+
 
 loc = np.array(loc)
 weight = np.array(weight)
@@ -94,8 +94,12 @@ def cg(time):
     return (BEM_moment+fuel_moment+pass_moment)/(mass(time))
 
 
-#plt.plot(t, mass(t))
-#plt.plot(mf, x_mf(mf)*mf)
+# plt.plot(t, mass(t))
+# plt.plot(mf, x_mf(mf)*mf)
 #plt.plot(mf_x, x)
+# plt.plot(t, len(t)*[req[0]], t, len(t)*[req[1]])
 plt.plot(t, cg(t))
 plt.show()
+
+print(req)
+print(cg(0))
