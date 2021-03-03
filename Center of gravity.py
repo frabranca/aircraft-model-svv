@@ -4,7 +4,7 @@ inch = 0.0254  # multiply to get meters
 pound = 0.453592
 g = 9.81
 m_dot = 0.048  # kg/s
-t = 0  # s
+t = np.arange(0,3000,1)# s
 
 # --------------------------------------------------------
 #                           BEM
@@ -16,6 +16,9 @@ BEM = 60500 / g  # [kg]  = to standard aircraft mass?
 # --------------------------------------------------------
 block_fuel = 2700 * pound # kg max fuel flow?
 
+def fuel_mass(t):
+    m = block_fuel-m_dot*t
+    return m
 # --------------------------------------------------------
 #                           PAYLOAD
 # --------------------------------------------------------
@@ -31,7 +34,6 @@ coordinator = ["Coord", 80, 10]
 
 
 passengers = pilot1, pilot2, abattegazzore, fbranca, yprencipe, o4, o5, o6, coordinator
-#passengers = np.matrix(passengers)
 
 seat = []
 weight = []
