@@ -5,5 +5,5 @@ plt.plot([1, 2, 3, 4])
 plt.ylabel('some numbers')
 plt.show()
 
-print("Francesco is gay")
+print("Andrea is gay")
 print("Franci baby sukko mi cocco")
