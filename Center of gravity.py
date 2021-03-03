@@ -1,10 +1,22 @@
 import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+import scipy.interpolate as sc
 
-inch = 0.0254  # multiply to get meters
-pound = 0.453592
+meters = 0.0254  # multiply to get meters
+kg = 0.453592
 g = 9.81
 m_dot = 0.048  # kg/s
 t = np.arange(0,3000,1)# s
+cg_bem = 3  # m
+
+d = pd.read_csv('fuelmass.txt', header=None, delimiter= '&')
+mf = np.hstack((d[0],d[2])) * kg  # in kg
+mf_x = np.hstack((d[1],d[3]))*100 * kg * meters  # kg*s
+x = mf_x/mf  # m
+
+x_mf = sc.interpolate.interp1d(mf,x,kind='cubic')  # m, f(kg)
+
 
 # --------------------------------------------------------
 #                           BEM
@@ -14,11 +26,9 @@ BEM = 60500 / g  # [kg]  = to standard aircraft mass?
 # --------------------------------------------------------
 #                           FUEL
 # --------------------------------------------------------
-block_fuel = 2700 * pound # kg max fuel flow?
+block_fuel = 2700 * kg
 
-def fuel_mass(t):
-    m = block_fuel-m_dot*t
-    return m
+
 # --------------------------------------------------------
 #                           PAYLOAD
 # --------------------------------------------------------
@@ -48,15 +58,15 @@ loc = []
 
 def getpassengerposition(seat):
     if seat == 1 or seat == 2:
-        position = 131 * inch
+        position = 131 * meters
     if seat == 3 or seat == 4:
-        position = 214 * inch
+        position = 214 * meters
     if seat == 5 or seat == 6:
-        position = 251 * inch
+        position = 251 * meters
     if seat == 7 or seat == 8:
-        position = 288 * inch
+        position = 288 * meters
     if seat == 9 or seat == 10:
-        position = 170 * inch
+        position = 170 * meters
     return position
 
 for i in seat:
@@ -64,6 +74,28 @@ for i in seat:
 
 ramp_mass = BEM + block_fuel + sum(weight)
 
-mass = ramp_mass - m_dot * t
+def mass(time):
+    m = BEM + sum(weight) + block_fuel-m_dot*time
+    return m
 
-cg_x =
+def getfuelx(time):
+    mass_fuel = block_fuel-m_dot*time
+    x = x_mf(mass_fuel)
+    return x
+
+loc = np.array(loc)
+weight = np.array(weight)
+
+
+def cg(time):
+    pass_moment = sum(loc*weight)
+    fuel_moment = getfuelx(time)*(block_fuel-m_dot*time)
+    BEM_moment = BEM * cg_bem
+    return (BEM_moment+fuel_moment+pass_moment)/(mass(time))
+
+
+#plt.plot(t, mass(t))
+#plt.plot(mf, x_mf(mf)*mf)
+#plt.plot(mf_x, x)
+plt.plot(t, cg(t))
+plt.show()
