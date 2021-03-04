@@ -82,7 +82,6 @@ def mass(time):
     return m
 
 
-
 loc = np.array(loc)
 weight = np.array(weight)
 
