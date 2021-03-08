@@ -115,18 +115,19 @@ class ac:
 
     def sym(self):
         c11 = [-2 * self.muc * self.c / self.V, 0, 0, 0]
-        c12 = [0, (self.CZadot - 2 * self.muc) * self.c / self.V, 0, 2 * self.muc]
-        c13 = [0, self.Cmadot * self.c / self.V, 0, -2 * self.muc * self.KY2]
-        c14 = [0, 0, -self.c / self.V, 0]
+        c12 = [0, (self.CZadot - 2 * self.muc) * self.c / self.V, 0, 0]
+        c13 = [0, 0, -self.c / self.V, 0]
+        c14 = [0, self.Cmadot * self.c / self.V, 0, -2 * self.muc * self.KY2 * self.c / self.V]
         C1 = np.array([c11,
                        c12,
                        c13,
                        c14])
 
         c21 = [self.CXu, self.CXa, self.CZ0, self.CXq]
-        c22 = [self.CZu, self.CZa, -self.CX0, self.CZq]
-        c23 = [self.Cmu, self.Cma, 0, self.Cmq]
-        c24 = [0, 0, 0, 1]
+        c22 = [self.CZu, self.CZa, -self.CX0, self.CZq + 2 * self.muc]
+        c23 = [0, 0, 0, 1]
+        c24 = [self.Cmu, self.Cma, 0, self.Cmq]
+
         C2 = np.array([c21,
                        c22,
                        c23,
@@ -136,6 +137,38 @@ class ac:
                        [self.CZde],
                        [0],
                        [self.Cmde]])
+
+        self.A = -np.matmul(np.linalg.inv(C1), C2)
+        self.B = -np.matmul(np.linalg.inv(C1), C3)
+        self.C = np.eye(4)
+        self.D = np.zeros((4, 1))
+
+        self.sys = ml.ss(self.A, self.B, self.C, self.D)
+        return self.sys
+
+    def asym(self):
+        c11 = [2 * (self.muc - self.CYbdot) * self.b / self.V, 0, 0, 0]
+        c12 = [0, self.b/(2*self.V), 0, 0]
+        c13 = [0, 0, 4*self.mub*self.KX2*self.b/self.V, -4*self.mub*self.KXZ*self.b/self.V]
+        c14 = [self.Cnbdot * self.b/self.V, 0, -4*self.mub*self.KXZ*self.b/self.V, 4*self.mub*self.KZ2*self.b/self.V]
+        C1 = np.array([c11,
+                       c12,
+                       c13,
+                       c14])
+
+        c21 = [self.CYb, self.CL, self.CYp, self.CYr - 4 * self.mub]
+        c22 = [0,0,1,0]
+        c23 = [self.Clb, 0, self.Clp, self.Clr]
+        c24 = [self.Cnb, 0, self.Cnp, self.Cnr]
+        C2 = np.array([c21,
+                       c22,
+                       c23,
+                       c24])
+
+        C3 = np.array([[self.CYda, self.Cydr],
+                       [0,0],
+                       [self.Clda, self.Cldr],
+                       [self.Cnda, self.Cndr]])
 
         self.A = -np.matmul(np.linalg.inv(C1), C2)
         self.B = -np.matmul(np.linalg.inv(C1), C3)
