@@ -5,21 +5,26 @@ import control.matlab as ml
 import matplotlib.pyplot as plt
 
 class ac:
-    def __init__(self):
+    def __init__(self, hp0=8000):
     # Citation 550 - Linear simulation
     # xcg = 0.25 * c
     # Stationary flight condition
 
-        self.hp0 = 8000      	      # pressure altitude in the stationary flight condition [m]
+        self.hp0 = hp0      	      # pressure altitude in the stationary flight condition [m]
         self.V0 = 1            # true airspeed in the stationary flight condition [m/sec]
         self.alpha0 = 1            # angle of attack in the stationary flight condition [rad]
         self.th0 = 1            # pitch angle in the stationary flight condition [rad]
+        self.rho0 = 1.2250          # air density at sea level [kg/m^3]
+        self.Temp0 = 288.15          # temperature at sea level in ISA [K]
+        self.R = 287.05          # specific gas constant [m^2/sec^2K]
+        self.g = 9.81
+        self.W = 60500           # [N]       (aircraft weight)
+        self.m = self.W/self.g
 
-        # Aerodynamic properties
+    # Aerodynamic properties
         self.e = 0.8            # Oswald factor [ ]
         self.CD0 = 0.04            # Zero lift drag coefficient [ ]
         self.CLa = 5.084            # Slope of CL-alpha curve [ ]
-        self.g = 9.81
         # Longitudinal stability
         self.Cma = -0.5626            # longitudinal stabilty [ ]
         self.Cmde = -1.1642            # elevator effectiveness [ ]
@@ -39,20 +44,12 @@ class ac:
         self.Vh_V = 1	          # [ ]
         self.ih = -2 * pi / 180   # stabiliser angle of incidence [rad]
 
-        # Constant values concerning atmosphere and gravity
-
-        self.rho0 = 1.2250          # air density at sea level [kg/m^3]
         self.lam = -0.0065         # temperature gradient in ISA [K/m]
-        self.Temp0 = 288.15          # temperature at sea level in ISA [K]
-        self.R = 287.05          # specific gas constant [m^2/sec^2K]
-        # air density [kg/m^3]
         self.rho = self.rho0 * pow( ((1+(self.lam * self.hp0 / self.Temp0))), (-((self.g / (self.lam * self.R)) + 1)))
-        self.W = 60500           # [N]       (aircraft weight)
-        self.m = self.W/self.g
-        # Constant values concerning aircraft inertia
-
         self.muc = self.m / (self.rho * self.S * self.c)
         self.mub = self.m / (self.rho * self.S * self.b)
+
+
         self.KX2 = 0.019
         self.KZ2 = 0.042
         self.KXZ = 0.002
@@ -111,13 +108,20 @@ class ac:
         self.Cndr = -0.0939
 
         # SYMMETRIC (C1, C2, C3)
-        self.V = 1
 
-    def sym(self):
-        c11 = [-2 * self.muc * self.c / self.V, 0, 0, 0]
-        c12 = [0, (self.CZadot - 2 * self.muc) * self.c / self.V, 0, 0]
-        c13 = [0, 0, -self.c / self.V, 0]
-        c14 = [0, self.Cmadot * self.c / self.V, 0, -2 * self.muc * self.KY2 * self.c / self.V]
+    # def muc(self,h):
+    #     self.muc = self.m / (self.rho(h) * self.S * self.b)
+    #     return self.muc
+    #
+    # def mub(self,h):
+    #     self.mub = self.m / (self.rho(h) * self.S * self.b)
+    #     return self.mub
+
+    def sym(self,V):
+        c11 = [-2 * self.muc * self.c / V, 0, 0, 0]
+        c12 = [0, (self.CZadot - 2 * self.muc) * self.c / V, 0, 0]
+        c13 = [0, 0, -self.c / V, 0]
+        c14 = [0, self.Cmadot * self.c / V, 0, -2 * self.muc * self.KY2 * self.c / V]
         C1 = np.array([c11,
                        c12,
                        c13,
@@ -144,13 +148,14 @@ class ac:
         self.D = np.zeros((4, 1))
 
         self.sys = ml.ss(self.A, self.B, self.C, self.D)
+
         return self.sys
 
-    def asym(self):
-        c11 = [(2*self.mub - self.CYbdot)*self.b/self.V, 0, 0, 0]
-        c12 = [0, self.b/(2*self.V), 0, 0]
-        c13 = [0, 0, 4*self.mub*self.KX2*self.b/self.V, -4*self.mub*self.KXZ*self.b/self.V]
-        c14 = [-self.Cnbdot * self.b/self.V, 0, -4*self.mub*self.KXZ*self.b/self.V, 4*self.mub*self.KZ2*self.b/self.V]
+    def asym(self, V):
+        c11 = [(2*self.mub - self.CYbdot)*self.b/V, 0, 0, 0]
+        c12 = [0, self.b/(2*V), 0, 0]
+        c13 = [0, 0, 4*self.mub*self.KX2*self.b/V, -4*self.mub*self.KXZ*self.b/V]
+        c14 = [-self.Cnbdot * self.b/V, 0, -4*self.mub*self.KXZ*self.b/V, 4*self.mub*self.KZ2*self.b/V]
         C1 = np.array([c11,
                        c12,
                        c13,
@@ -179,3 +184,13 @@ class ac:
         return self.sys
 
 ac = ac()
+kts = 0.514444
+V = np.array([250, 218, 191])*kts
+
+sys1 = ac.sym(V[0])
+y, t = ml.step(sys1)
+
+plt.plot(t,y[:,1])
+# plt.plot(t,x)
+plt.grid()
+plt.show()
