@@ -173,7 +173,7 @@ class ac:
         self.A = np.matmul(np.linalg.inv(C1), C2)
         self.B = np.matmul(np.linalg.inv(C1), C3)
         self.C = np.eye(4)
-        self.D = np.zeros((4,1))
+        self.D = np.zeros((4,2))
 
         self.sys = ml.ss(self.A, self.B, self.C, self.D)
         return self.sys
