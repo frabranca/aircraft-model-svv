@@ -147,10 +147,10 @@ class ac:
         return self.sys
 
     def asym(self):
-        c11 = [2 * (self.muc - self.CYbdot) * self.b / self.V, 0, 0, 0]
+        c11 = [(2*self.mub - self.CYbdot)*self.b/self.V, 0, 0, 0]
         c12 = [0, self.b/(2*self.V), 0, 0]
         c13 = [0, 0, 4*self.mub*self.KX2*self.b/self.V, -4*self.mub*self.KXZ*self.b/self.V]
-        c14 = [self.Cnbdot * self.b/self.V, 0, -4*self.mub*self.KXZ*self.b/self.V, 4*self.mub*self.KZ2*self.b/self.V]
+        c14 = [-self.Cnbdot * self.b/self.V, 0, -4*self.mub*self.KXZ*self.b/self.V, 4*self.mub*self.KZ2*self.b/self.V]
         C1 = np.array([c11,
                        c12,
                        c13,
@@ -165,13 +165,13 @@ class ac:
                        c23,
                        c24])
 
-        C3 = np.array([[self.CYda, self.Cydr],
+        C3 = np.array([[self.CYda, self.CYdr],
                        [0,0],
                        [self.Clda, self.Cldr],
                        [self.Cnda, self.Cndr]])
 
-        self.A = -np.matmul(np.linalg.inv(C1), C2)
-        self.B = -np.matmul(np.linalg.inv(C1), C3)
+        self.A = np.matmul(np.linalg.inv(C1), C2)
+        self.B = np.matmul(np.linalg.inv(C1), C3)
         self.C = np.eye(4)
         self.D = np.zeros((4,1))
 
