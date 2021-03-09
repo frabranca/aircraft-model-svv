@@ -107,17 +107,8 @@ class ac:
         self.Cnda = -0.0120
         self.Cndr = -0.0939
 
-        # SYMMETRIC (C1, C2, C3)
-
-    # def muc(self,h):
-    #     self.muc = self.m / (self.rho(h) * self.S * self.b)
-    #     return self.muc
-    #
-    # def mub(self,h):
-    #     self.mub = self.m / (self.rho(h) * self.S * self.b)
-    #     return self.mub
-
-    def sym(self,V):
+    # SYMMETRIC (C1, C2, C3)
+    def sym_system(self,V):
         c11 = [-2 * self.muc * self.c / V, 0, 0, 0]
         c12 = [0, (self.CZadot - 2 * self.muc) * self.c / V, 0, 0]
         c13 = [0, 0, -self.c / V, 0]
@@ -150,6 +141,10 @@ class ac:
         self.sys = ml.ss(self.A, self.B, self.C, self.D)
 
         return self.sys
+
+    def sym_response(self, V):
+        system = self.sym_system(V)
+        return system.A
 
     def asym(self, V):
         c11 = [(2*self.mub - self.CYbdot)*self.b/V, 0, 0, 0]
