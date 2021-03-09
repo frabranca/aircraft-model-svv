@@ -3,6 +3,11 @@ import numpy as np
 import control.matlab as ml
 from matplotlib import pyplot as plt
 
+
+"""
+solve equations of motion for inital alpha and velocity
+"""
+
 if __name__ == "__main__":
     # ac = am.ac(hp0=5288.28)
     # V = 102.88889
@@ -35,9 +40,9 @@ if __name__ == "__main__":
     V = 102.88889
     sys1 = ac.sym_system(V)
     poles, eigenvectors = np.linalg.eig(ac.A)
-    print(eigenvectors)
-    plt.scatter(np.real(poles), np.imag(poles))
-    plt.grid()
-    plt.show()
+    print(poles [0], np.real(eigenvectors[0]), np.sqrt(np.sum(np.imag(eigenvectors[0])**2)))
+    # plt.scatter(np.real(poles), np.imag(poles))
+    # plt.grid()
+    # plt.show()
 
 
