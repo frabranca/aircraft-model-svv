@@ -1,4 +1,4 @@
-import analytical_main as am
+import analytical_main2 as am
 import numpy as np
 import control.matlab as ml
 from matplotlib import pyplot as plt
@@ -14,19 +14,22 @@ if __name__ == "__main__":
     print(y[0,:])
 
     plt.subplot(221)
-    plt.ylim(-)
+    #plt.ylim(-2,2)
     plt.plot(t, np.degrees(y[:,0]))
     plt.grid()
 
     plt.subplot(222)
+    #plt.ylim(-20,20)
     plt.plot(t, np.degrees(y[:,1]))
     plt.grid()
 
     plt.subplot(223)
+    #plt.ylim(-2,2)
     plt.plot(t, np.degrees(y[:,2]))
     plt.grid()
 
     plt.subplot(224)
+    #plt.ylim(-2,2)
     plt.plot(t, np.degrees(y[:,3]))
     plt.grid()
 
