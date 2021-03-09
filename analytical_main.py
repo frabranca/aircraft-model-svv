@@ -19,14 +19,12 @@ class ac:
         self.V0 = 102            # true airspeed in the stationary flight condition [m/sec]
         self.alpha0 = radians(5)            # angle of attack in the stationary flight condition [rad]
         self.th0 = radians(4)            # pitch angle in the stationary flight condition [rad]
-        self.rho0 = 1.2250          # air density at sea level [kg/m^3]
-        self.Temp0 = 288.15          # temperature at sea level in ISA [K]
-        self.R = 287.05          # specific gas constant [m^2/sec^2K]
+        self.rho0, self.Temp0, self.R = 1.2250, 288.15, 287.05          # air density, temperature at sea level [kg/m^3, K] + GAS CONSTANT
         self.g = 9.81
         self.W = 60500           # [N]       (aircraft weight)
         self.m = self.W/self.g
         self.dt = 0.01
-        self.t = np.arange(0., 10.+self.dt, self.dt)
+        self.t = np.arange(0., 20.+self.dt, self.dt)
     # Aerodynamic properties
         self.e = 0.8            # Oswald factor [ ]
         self.CD0 = 0.04            # Zero lift drag coefficient [ ]
@@ -36,7 +34,6 @@ class ac:
         self.Cmde = -1.1642            # elevator effectiveness [ ]
 
         # Aircraft geometry
-
         self.S = 30.00	          # wing area [m^2]
         self.Sh = 0.2 * self.S         # stabiliser area [m^2]
         self.Sh_S = self.Sh / self.S	          # [ ]
@@ -55,11 +52,7 @@ class ac:
         self.muc = self.m / (self.rho * self.S * self.c)
         self.mub = self.m / (self.rho * self.S * self.b)
 
-
-        self.KX2 = 0.019
-        self.KZ2 = 0.042
-        self.KXZ = 0.002
-        self.KY2 = 1.25 * 1.114
+        self.KX2, self.KZ2, self.KXZ, self.KY2 = 0.019, 0.042, 0.002, 1.25 * 1.114
 
         # Aerodynamic constants
 
@@ -76,11 +69,7 @@ class ac:
         # Stability derivatives
 
         self.CX0 = self.W * sin(self.th0) / (0.5 * self.rho * self.V0 ** 2 * self.S)
-        self.CXu = -0.0279
-        self.CXa = +0.47966		# Positive! (see FD lecture notes)
-        self.CXadot = +0.08330
-        self.CXq = -0.28170
-        self.CXde = -0.03728
+        self.CXu, self.CXa, self.CXadot, self.CXq, self.CXde = -0.0279, +0.47966, +0.08330, -0.28170, -0.03728
 
         self.CZ0 = -self.W * cos(self.th0) / (0.5 * self.rho * self.V0 ** 2 * self.S)
         self.CZu = -0.37616
@@ -156,11 +145,34 @@ class ac:
     def sym_plot(self, V, x0):
         y = self.sym_response(V, x0)
         plt.figure()
-        for i in range(len(sym_x)):
-            plt.plot(self.t, y[:,i], color[i], label=sym_x[i])
+
+        plt.subplot(221)
+        plt.title('Normalized Velocity Change')
+        plt.plot(self.t, y[:,0], color[0], label=sym_x[0])
         plt.grid()
         plt.legend()
+
+        plt.subplot(222)
+        plt.title('Angle of attack')
+        plt.plot(self.t, y[:,1], color[1], label=sym_x[1])
+        plt.grid()
+        plt.legend()
+
+        plt.subplot(223)
+        plt.title('Pitch angle')
+        plt.plot(self.t, y[:,2], color[2], label=sym_x[2])
+        plt.grid()
+        plt.legend()
+
+        plt.subplot(224)
+        plt.title('Pitch rate')
+        plt.plot(self.t, y[:,3], color[3], label=sym_x[3])
+        plt.grid()
+        plt.legend()
+
         plt.show()
+
+    def sym_eig(self, V): return ml.damp(self.sym_system(V))
 
     # ASYMMETRIC
     def asym_system(self, V):
@@ -203,17 +215,39 @@ class ac:
     def asym_plot(self, V, x0):
         y = self.asym_response(V, x0)
         plt.figure()
-        for i in range(len(asym_x)):
-            plt.plot(self.t, y[:,i], color[i], label=asym_x[i])
+
+        plt.subplot(221)
+        plt.title('Side slip angle')
+        plt.plot(self.t, y[:,0], color[0], label=sym_x[0])
         plt.grid()
         plt.legend()
+
+        plt.subplot(222)
+        plt.title('Roll angle')
+        plt.plot(self.t, y[:,1], color[1], label=sym_x[1])
+        plt.grid()
+        plt.legend()
+
+        plt.subplot(223)
+        plt.title('Roll rate')
+        plt.plot(self.t, y[:,2], color[2], label=sym_x[2])
+        plt.grid()
+        plt.legend()
+
+        plt.subplot(224)
+        plt.title('Yaw rate')
+        plt.plot(self.t, y[:,3], color[3], label=sym_x[3])
+        plt.grid()
+        plt.legend()
+
         plt.show()
+
+    def asym_eig(self, V): return ml.damp(self.asym_system(V))
 
 if __name__ == "__main__":
     ac = ac()
-    kts = 0.514444
     V = np.array([250, 218, 191])*kts
     u0 = (V[0]-ac.V0)/ac.V0
     # x0 = np.array([u0,radians(1.4),radians(1.4),0.])
     x0 = np.array([0.,radians(15),0.,0.])
-    ac.asym_plot(V[0], x0)
+    ac.sym_eig(V[0])
