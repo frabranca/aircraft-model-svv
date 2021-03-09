@@ -4,6 +4,11 @@ from numpy.linalg import *
 import control.matlab as ml
 import matplotlib.pyplot as plt
 
+kts = 0.514444
+sym_x = ['u', r'$\alpha$', r'$\theta$', r'$\frac{qc}{V}$']
+asym_x = [r'$\beta$', r'$\phi$', r'$\frac{pb}{2V}$', r'$\frac{rb}{2V}$']
+color = ['r', 'b', 'c', 'k']
+
 class ac:
     def __init__(self, hp0=8000):
     # Citation 550 - Linear simulation
@@ -11,16 +16,17 @@ class ac:
     # Stationary flight condition
 
         self.hp0 = hp0      	      # pressure altitude in the stationary flight condition [m]
-        self.V0 = 1            # true airspeed in the stationary flight condition [m/sec]
-        self.alpha0 = 1            # angle of attack in the stationary flight condition [rad]
-        self.th0 = 1            # pitch angle in the stationary flight condition [rad]
+        self.V0 = 102            # true airspeed in the stationary flight condition [m/sec]
+        self.alpha0 = radians(5)            # angle of attack in the stationary flight condition [rad]
+        self.th0 = radians(4)            # pitch angle in the stationary flight condition [rad]
         self.rho0 = 1.2250          # air density at sea level [kg/m^3]
         self.Temp0 = 288.15          # temperature at sea level in ISA [K]
         self.R = 287.05          # specific gas constant [m^2/sec^2K]
         self.g = 9.81
         self.W = 60500           # [N]       (aircraft weight)
         self.m = self.W/self.g
-
+        self.dt = 0.01
+        self.t = np.arange(0., 10.+self.dt, self.dt)
     # Aerodynamic properties
         self.e = 0.8            # Oswald factor [ ]
         self.CD0 = 0.04            # Zero lift drag coefficient [ ]
@@ -107,7 +113,7 @@ class ac:
         self.Cnda = -0.0120
         self.Cndr = -0.0939
 
-    # SYMMETRIC (C1, C2, C3)
+    # SYMMETRIC
     def sym_system(self,V):
         c11 = [-2 * self.muc * self.c / V, 0, 0, 0]
         c12 = [0, (self.CZadot - 2 * self.muc) * self.c / V, 0, 0]
@@ -142,11 +148,22 @@ class ac:
 
         return self.sys
 
-    def sym_response(self, V):
+    def sym_response(self, V, x0):
         system = self.sym_system(V)
-        return system.A
+        self.y, self.t = ml.impulse(system, self.t, x0)
+        return self.y
 
-    def asym(self, V):
+    def sym_plot(self, V, x0):
+        y = self.sym_response(V, x0)
+        plt.figure()
+        for i in range(len(sym_x)):
+            plt.plot(self.t, y[:,i], color[i], label=sym_x[i])
+        plt.grid()
+        plt.legend()
+        plt.show()
+
+    # ASYMMETRIC
+    def asym_system(self, V):
         c11 = [(2*self.mub - self.CYbdot)*self.b/V, 0, 0, 0]
         c12 = [0, self.b/(2*V), 0, 0]
         c13 = [0, 0, 4*self.mub*self.KX2*self.b/V, -4*self.mub*self.KXZ*self.b/V]
@@ -178,18 +195,25 @@ class ac:
         self.sys = ml.ss(self.A, self.B, self.C, self.D)
         return self.sys
 
+    def asym_response(self, V, x0):
+        system = self.asym_system(V)
+        self.y, self.t = ml.initial(system, self.t, x0)
+        return self.y
+
+    def asym_plot(self, V, x0):
+        y = self.asym_response(V, x0)
+        plt.figure()
+        for i in range(len(asym_x)):
+            plt.plot(self.t, y[:,i], color[i], label=asym_x[i])
+        plt.grid()
+        plt.legend()
+        plt.show()
 
 if __name__ == "__main__":
     ac = ac()
     kts = 0.514444
     V = np.array([250, 218, 191])*kts
-    
-    sys11 = ac.asym(V[0])
-    y, t = ml.step(sys11)
-    print(y[:,1])
-    print(t)
-
-    plt.plot(t,y[:,1])
-    # plt.plot(t,x)
-    plt.grid()
-    plt.show()
+    u0 = (V[0]-ac.V0)/ac.V0
+    # x0 = np.array([u0,radians(1.4),radians(1.4),0.])
+    x0 = np.array([0.,radians(15),0.,0.])
+    ac.asym_plot(V[0], x0)
