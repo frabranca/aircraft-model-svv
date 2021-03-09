@@ -183,14 +183,18 @@ class ac:
         self.sys = ml.ss(self.A, self.B, self.C, self.D)
         return self.sys
 
-ac = ac()
-kts = 0.514444
-V = np.array([250, 218, 191])*kts
 
-sys1 = ac.sym(V[0])
-y, t = ml.step(sys1)
+if __name__ == "__main__":
+    ac = ac()
+    kts = 0.514444
+    V = np.array([250, 218, 191])*kts
+    
+    sys1 = ac.asym(V[0])
+    y, t = ml.step(sys1)
+    print(y[:,1])
+    print(t)
 
-plt.plot(t,y[:,1])
-# plt.plot(t,x)
-plt.grid()
-plt.show()
+    plt.plot(t,y[:,1])
+    # plt.plot(t,x)
+    plt.grid()
+    plt.show()
