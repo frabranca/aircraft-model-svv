@@ -188,7 +188,7 @@ if __name__ == "__main__":
     ac = ac()
     kts = 0.514444
     V = np.array([250, 218, 191])*kts
-    
+
     sys1 = ac.asym(V[0])
     y, t = ml.step(sys1)
     print(y[:,1])
