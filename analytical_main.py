@@ -4,7 +4,10 @@ from numpy.linalg import *
 import control.matlab as ml
 import matplotlib.pyplot as plt
 
+# unit conversion
 kts = 0.514444
+
+# plot labels
 sym_x = ['u', r'$\alpha$', r'$\theta$', r'$\frac{qc}{V}$']
 asym_x = [r'$\beta$', r'$\phi$', r'$\frac{pb}{2V}$', r'$\frac{rb}{2V}$']
 color = ['r', 'b', 'c', 'k']
@@ -72,15 +75,9 @@ class ac:
         self.CXu, self.CXa, self.CXadot, self.CXq, self.CXde = -0.0279, +0.47966, +0.08330, -0.28170, -0.03728
 
         self.CZ0 = -self.W * cos(self.th0) / (0.5 * self.rho * self.V0 ** 2 * self.S)
-        self.CZu = -0.37616
-        self.CZa = -5.74340
-        self.CZadot = -0.00350
-        self.CZq = -5.66290
-        self.CZde = -0.69612
+        self.CZu, self.CZa, self.CZadot, self.CZq, self.CZde = -0.37616, -5.74340, -0.00350, -5.66290, -0.69612
 
-        self.Cmu = +0.06990
-        self.Cmadot = +0.17800
-        self.Cmq = -8.79415
+        self.Cmu, self.Cmadot, self.Cmq = +0.06990, +0.17800, -8.79415
 
         self.CYb = -0.7500
         self.CYbdot =  0
@@ -141,6 +138,11 @@ class ac:
         system = self.sym_system(V)
         self.y, self.t = ml.impulse(system, self.t, x0)
         return self.y
+
+    def sym_input_response(self, V, u):
+        system = self.sym_system(V)
+        self.y = ml.lsim(system, u, self.t)
+        return self.y[0]
 
     def sym_plot(self, V, x0):
         y = self.sym_response(V, x0)
@@ -250,4 +252,10 @@ if __name__ == "__main__":
     u0 = (V[0]-ac.V0)/ac.V0
     # x0 = np.array([u0,radians(1.4),radians(1.4),0.])
     x0 = np.array([0.,radians(15),0.,0.])
-    ac.sym_eig(V[0])
+    # ac.sym_eig(V[0])
+    input = np.zeros((1, len(ac.t)))[0]
+    input[0:9] = 0.15
+
+    y = ac.sym_input_response(V[0],input_dutch)
+    plt.plot(ac.t, y)
+    plt.show()
