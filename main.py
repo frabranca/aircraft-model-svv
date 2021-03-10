@@ -1,9 +1,17 @@
-print("clown college b34")
+import scipy.io
+import numpy as np
+import pandas as pd
 
-import matplotlib.pyplot as plt
-plt.plot([1, 2, 3, 4])
-plt.ylabel('some numbers')
-plt.show()
+mat = scipy.io.loadmat('matlabR.mat')
+data = mat["flightdata"][0][0]
+labels = np.zeros(len(data),dtype=object)
+values = np.zeros(len(data),dtype=object)
+for i in range(len(data)):
+    labels[i] = data[i][0][0][2][0][0][0]
+    values[i] = np.concatenate(data[i][0][0][0])
 
-print("Andrea is gay")
-print("Franci baby sukko mi cocco")
+imax = np.size(values[0])
+values = np.concatenate(values).reshape(np.size(values),imax)
+df = pd.DataFrame(values.T, columns=labels)
+# df.to_csv(r"Flightdata.csv",index=False)
+print(pd.read_csv(r"Flightdata.csv"))
