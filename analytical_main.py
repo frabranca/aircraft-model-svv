@@ -3,9 +3,11 @@ import numpy as np
 from numpy.linalg import *
 import control.matlab as ml
 import matplotlib.pyplot as plt
-
 # unit conversion
 kts = 0.514444
+
+#velocities
+V = np.array([250, 218, 191]) * kts
 
 # plot labels
 sym_x = ['u', r'$\alpha$', r'$\theta$', r'$\frac{qc}{V}$']
@@ -19,7 +21,7 @@ class ac:
     # Stationary flight condition
 
         self.hp0 = hp0      	      # pressure altitude in the stationary flight condition [m]
-        self.V0 = 102            # true airspeed in the stationary flight condition [m/sec]
+        self.V0 = V[0]           # true airspeed in the stationary flight condition [m/sec]
         self.alpha0 = radians(5)            # angle of attack in the stationary flight condition [rad]
         self.th0 = radians(4)            # pitch angle in the stationary flight condition [rad]
         self.rho0, self.Temp0, self.R = 1.2250, 288.15, 287.05          # air density, temperature at sea level [kg/m^3, K] + GAS CONSTANT
@@ -248,7 +250,6 @@ class ac:
 
 if __name__ == "__main__":
     ac = ac()
-    V = np.array([250, 218, 191])*kts
     u0 = (V[0]-ac.V0)/ac.V0
     # x0 = np.array([u0,radians(1.4),radians(1.4),0.])
     x0 = np.array([0.,radians(15),0.,0.])
