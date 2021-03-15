@@ -256,6 +256,7 @@ if __name__ == "__main__":
     input = np.zeros((1, len(ac.t)))[0]
     input[0:9] = 0.15
 
-    y = ac.sym_input_response(V[0],input_dutch)
-    plt.plot(ac.t, y)
-    plt.show()
+    y = ac.sym_input_response(V[0],input)
+    ac.sym_plot(200, x0)
+    #plt.plot(ac.t, y)
+    #plt.show()

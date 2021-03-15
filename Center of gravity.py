@@ -8,8 +8,11 @@ kg = 0.453592
 g = 9.81
 m_dot = 0.048  # kg/s
 t = np.arange(0,3600,1)# s
-cg_bem = 7.17  # m [~7.15 lower]
+cg_bem = 291.65 * meters # m
 req = [276.1*meters, 285.8*meters]
+
+mac = 80.98 * meters
+x_ac = 261.56 * meters + mac/4
 
 d = pd.read_csv('fuelmass.txt', header=None, delimiter= '&')
 mf = np.hstack((d[0],d[2])) * kg  # in kg
@@ -21,12 +24,13 @@ x_mf = sc.interpolate.interp1d(mf,x,kind='cubic')  # m, f(kg)
 # --------------------------------------------------------
 #                           BEM
 # --------------------------------------------------------
-BEM = 60500 / g  # [kg]  = to standard aircraft mass?
+BEM = 9165.0*kg  # [kg]  = to standard aircraft mass?
 
 # --------------------------------------------------------
 #                           FUEL
 # --------------------------------------------------------
 block_fuel = 2700 * kg
+
 def getfuelx(time):
     mass_fuel = block_fuel-m_dot*time
     x = x_mf(mass_fuel)
@@ -35,18 +39,18 @@ def getfuelx(time):
 # --------------------------------------------------------
 #                           PAYLOAD
 # --------------------------------------------------------
-pilot1 = ["Pilot1", 70, 1]
+pilot1 = ["Pilot1", 75, 1]
 pilot2 = ["Pilot2", 75, 2]
-abattegazzore = ["ABattegazzore", 62, 3]
-fbranca = ["FBranca", 58, 4]
-yprencipe = ["YPrencipe", 65, 5]
-o4 = ["Nout", 80, 6]
-o5 = ["Kristen", 80, 7]
-o6 = ["ASepulcri", 70, 8]
-coordinator = ["Coord", 80, 10]
+o1 = ["ABattegazzore", 75, 3]
+o2 = ["FBranca", 100, 4]
+o3 = ["YPrencipe", 75, 5]
+o4 = ["Nout", 75, 6]
+o5 = ["Kristen", 60, 7]
+o6 = ["ASepulcri", 80, 8]
+coordinator = ["Coord", 90, 10]
 
 
-passengers = pilot1, pilot2, abattegazzore, fbranca, yprencipe, o4, o5, o6, coordinator
+passengers = pilot1, pilot2, o1, o2, o3, o4, o5, o6, coordinator
 
 seat = []
 weight = []
@@ -98,6 +102,7 @@ def cg(time):
 #plt.plot(mf_x, x)
 # plt.plot(t, len(t)*[req[0]], t, len(t)*[req[1]])
 plt.plot(t, cg(t))
+plt.plot(t, [x_ac]*len(t))
 plt.show()
 
 print(req)
