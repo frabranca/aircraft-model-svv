@@ -1,8 +1,19 @@
-# Flight Dynamics Assignment
+# aircraft-model-svv
 
-The task of this assignment is to develop a numerical simulation of an aircraft. The model is constructed with a state-space representation for *symmetric* and one for *asymmetric flight*.
+## Simulation, Verification & Validation (SVV) of an aircraft numerical model
+
+This repository contains a coding assignment. The task is to develop the numerical simulation of an aircraft and compare the dynamic response to real flight data. The model is constructed with a state-space representation for *symmetric* and one for *asymmetric flight*.
+
+The following eigenmotions were recorded during the flight and are analysed in this code:
+- Short Period
+- Phugoid
+- Aperiodic Roll
+- Dutch Roll
+- Spiral
 
 ## Libraries:
 - control
 - numpy
-- seaborn 
+- scipy
+- matplotlib
+- seaborn
