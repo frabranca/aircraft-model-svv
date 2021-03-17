@@ -1,13 +1,12 @@
 from math import *
 import numpy as np
 import control.matlab as ml
-from sympy import *
 from analytical_main import ac
 import matplotlib.pyplot as plt
 ac = ac()
-
+kts = 0.514444
 hp0 = 5000      	      # pressure altitude in the stationary flight condition [m]
-V0 = 50            # true airspeed in the stationary flight condition [m/sec]
+V0 = 250*kts            # true airspeed in the stationary flight condition [m/sec]
 alpha0 = radians(5)            # angle of attack in the stationary flight condition [rad]
 th0 = radians(4)            # pitch angle in the stationary flight condition [rad]
 rho0, Temp0, R = 1.2250, 288.15, 287.05          # air density, temperature at sea level [kg/m^3, K] + GAS CONSTANT
@@ -106,8 +105,9 @@ asym_damp = asymfunc[1]
 asym_eig = asymfunc[2]
 
 #ANALYTICAL MODEL-----------------------------------------------
+from sympy import *
 x = symbols('x')
-# SHORT PERIOD
+# SHORT PERIOD CZadot = 0, CZq = 0
 short = Matrix([[CZa - 2*muc*x, 2*muc],
                 [Cma + Cmadot*x, Cmq - 2*muc*KY2*x]])
 short = short.det()
@@ -119,9 +119,18 @@ phug = Matrix([[CXu - 2*muc*x, CXa, CZ0, CXq],
                [CZu, CZa, 0, 2*muc],
                [0, 0, -x, 1],
                [Cmu, Cma, 0, Cmq]])
+# phug = Matrix([[CXu - 2*muc*x, CXa, CZ0, CXq],
+#                [CZu, CZa, 0, 2*muc],
+#                [0, 0, -x, 1],
+#                [Cmu, Cma, 0, Cmq]])
 phug = phug.det()
 phug_eig = np.array(solve(phug,x))*V0/c
 ephug = abs(np.abs(phug_eig[0]) - np.abs(sym_eig[0])) # / np.abs(phug_eig[0])*100
+
+# a = -4*muc**2
+# b = 2*muc*CXu
+# c = -CZu*CZ0
+# peig = np.roots([a,b,c])*V0/c
 
 # APERIODIC ROLL
 ap_eig = Clp / (4*mub*KX2) *V0/b
