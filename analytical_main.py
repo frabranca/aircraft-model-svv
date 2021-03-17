@@ -15,7 +15,7 @@ asym_x = [r'$\beta$', r'$\phi$', r'$\frac{pb}{2V}$', r'$\frac{rb}{2V}$']
 color = ['r', 'b', 'c', 'k']
 
 class ac:
-    def __init__(self, hp0=8000):
+    def __init__(self, hp0=5000):
     # Citation 550 - Linear simulation
     # xcg = 0.25 * c
     # Stationary flight condition
@@ -250,15 +250,17 @@ class ac:
 
 if __name__ == "__main__":
     ac = ac()
-    u0 = (V[0]-ac.V0)/ac.V0
-    # x0 = np.array([u0,radians(1.4),radians(1.4),0.])
-    x0 = np.array([0.,radians(15),0.,0.])
-    # ac.sym_eig(V[0])
-    input = np.zeros((1, len(ac.t)))[0]
-    input[0:9] = 0.15
-
-    y = ac.sym_input_response(V[0],input)
-    ac.sym_plot(200, x0)
+    # u0 = (V[0]-ac.V0)/ac.V0
+    # # x0 = np.array([u0,radians(1.4),radians(1.4),0.])
+    # x0 = np.array([0.,radians(15),0.,0.])
+    # # ac.sym_eig(V[0])
+    # input = np.zeros((1, len(ac.t)))[0]
+    # input[0:9] = 0.15
+    #
+    # y = ac.sym_input_response(V[0],input)
+    # ac.sym_plot(200, x0)
     ac.asym_plot(200, x0)
     #plt.plot(ac.t, y)
     #plt.show()
+    sys = ac.asym_system(V[0])
+    ml.damp(sys)
