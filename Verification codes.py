@@ -95,6 +95,7 @@ symfunc = ml.damp(sym, doprint=False)
 sym_freq = symfunc[0]
 sym_damp = symfunc[1]
 sym_eig = symfunc[2]
+print(sym_eig)
     # manoeuvres
 short_num = sym_eig[0:2] # SHORT PERIOD
 phug_num = sym_eig[2:4] # PHUGOID
@@ -122,6 +123,7 @@ phug = Matrix([[CXu - 2*muc*x, CXa, CZ0, CXq],
 phug = phug.det()
 phug_eig = np.array(solve(phug,x))*V0/c
 ephug = abs(np.abs(phug_eig[0]) - np.abs(sym_eig[0])) # / np.abs(phug_eig[0])*100
+print(phug_eig)
 
 # APERIODIC ROLL
 ap_eig = Clp / (4*mub*KX2) *V0/b
