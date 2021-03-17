@@ -2,9 +2,12 @@ from math import *
 import numpy as np
 import control.matlab as ml
 from sympy import *
+from analytical_main import ac
+import matplotlib.pyplot as plt
+ac = ac()
 
 hp0 = 5000      	      # pressure altitude in the stationary flight condition [m]
-V0 = 100            # true airspeed in the stationary flight condition [m/sec]
+V0 = 50            # true airspeed in the stationary flight condition [m/sec]
 alpha0 = radians(5)            # angle of attack in the stationary flight condition [rad]
 th0 = radians(4)            # pitch angle in the stationary flight condition [rad]
 rho0, Temp0, R = 1.2250, 288.15, 287.05          # air density, temperature at sea level [kg/m^3, K] + GAS CONSTANT
@@ -86,134 +89,51 @@ Cnr = -0.2061
 Cnda = -0.0120
 Cndr = -0.0939
 
-# unknown eigenvalue
+# NUMERICAL MODEL----------------------------------------------
+sym = ac.sym_system(V0)
+symfunc = ml.damp(sym, doprint=False)
+sym_freq = symfunc[0]
+sym_damp = symfunc[1]
+sym_eig = symfunc[2]
+    # manoeuvres
+short_num = sym_eig[0:2] # SHORT PERIOD
+phug_num = sym_eig[2:4] # PHUGOID
+
+asym = ac.asym_system(V0)
+asymfunc = ml.damp(asym, doprint=False)
+asym_freq = asymfunc[0]
+asym_damp = asymfunc[1]
+asym_eig = asymfunc[2]
+
+#ANALYTICAL MODEL-----------------------------------------------
 x = symbols('x')
-# SYMMETRIC MATRIX
-# sym = Matrix([[CXu - 2*muc*x, CXa, CZ0, CXq],
-#               [CZu, CZa + (CZadot - 2*muc)*x, -CX0, CZq + 2*muc],
-#               [0, 0, -x, 1],
-#               [Cmu, Cma + Cmadot*x, 0, Cmq - 2*muc*KY2*x]])
+# SHORT PERIOD
+short = Matrix([[CZa - 2*muc*x, 2*muc],
+                [Cma + Cmadot*x, Cmq - 2*muc*KY2*x]])
+short = short.det()
+short_eig = np.array(solve(short,x))*V0/c
+eshort = abs(np.abs(short_eig[0]) - np.abs(sym_eig[0])) / np.abs(short_eig[0])*100
 
-# ASYMMETRIC MATRIX
-# asym = Matrix([[CYb + (CYbdot - 2*mub)*x, CL, CYp, CYr - 4*mub],
-#                [0, -x/2, 1, 0],
-#                [Clb, 0, Clp - 4*mub*KX2*x, Clr + 4*mub*KXZ*x],
-#                [Cnb + Cnbdot*x, 0, Cnp + 4*mub*KXZ*x, Cnr - 4*mub*KZ2*x]])
+# PHUGOID
+phug = Matrix([[CXu - 2*muc*x, CXa, CZ0, CXq],
+               [CZu, CZa, 0, 2*muc],
+               [0, 0, -x, 1],
+               [Cmu, Cma, 0, Cmq]])
+phug = phug.det()
+phug_eig = np.array(solve(phug,x))*V0/c
+ephug = abs(np.abs(phug_eig[0]) - np.abs(sym_eig[0])) # / np.abs(phug_eig[0])*100
 
-# SIMPLIFICATIONS
+# APERIODIC ROLL
+ap_eig = Clp / (4*mub*KX2) *V0/b
+eap = abs(np.abs(ap_eig) - np.abs(asym_eig[0]))/ np.abs(ap_eig)*100
 
-# SHORT PERIOD OSCILLATION ----------------------------------------
-# ANALYTICAL
-short = Matrix([[CZa, CZq + 2*muc],
-                [Cma, Cmq]])
+# SPIRAL
+n = 2*CL*(Clb*Cnr - Cnb*Clr)
+d = Clp*(CYb*Cnr + 4*mub*Cnb) - Cnp*(CYb*Clr + 4*mub*Clb)
+sp_eig = n/d*V0/b
 
-eig = Matrix([[(CZadot - 2*muc), 0],
-              [Cmadot, -2*muc*KY2]])*x
-anal = short + eig
-short_eig = np.array(solve(anal.det(),x))*V0/c
-
-real = np.array([re(short_eig[0]), re(short_eig[1])])
-imag = np.array([im(short_eig[0]), im(short_eig[1])])
-
-P = 2*pi*c/imag/V0 #period
-T12 = np.log(0.5)/real #half amplitude time
-mod = (real**2 + imag**2)[0]
-freq = sqrt(mod) #frequency
-damp = - real/(sqrt(mod)) #damping coefficients
-
-# NUMERICAL
-def short_num():
-    c11 = [-2 * muc * c / V0, 0, 0, 0]
-    c12 = [0, (CZadot - 2 * muc) * c / V0, 0, 0]
-    c13 = [0, 0, -c / V0, 0]
-    c14 = [0, Cmadot * c / V0, 0, -2 * muc * KY2 * c / V0]
-    C1 = np.array([c11,
-                   c12,
-                   c13,
-                   c14])
-
-    c21 = [CXu, CXa, CZ0, CXq]
-    c22 = [CZu, CZa, -CX0, CZq + 2 * muc]
-    c23 = [0, 0, 0, 1]
-    c24 = [Cmu, Cma, 0, Cmq]
-
-    C2 = np.array([c21,
-                   c22,
-                   c23,
-                   c24])
-
-    C3 = np.array([[CXde],
-                   [CZde],
-                   [0],
-                   [Cmde]])
-
-    sa = -np.dot(np.linalg.inv(C1), C2)
-    sa[0] = np.zeros((1,4))[0]
-    sa[2] = np.zeros((1,4))[0]
-    sa[:,0] = np.zeros((4,))
-    sa[:,2] = np.zeros((4,))
-
-    sb = -np.dot(np.linalg.inv(C1), C3)
-    sc = np.array([[0,0,0,0],
-                  [0,1,0,0],
-                  [0,0,0,0],
-                  [0,0,0,1]])
-    sd = np.zeros((4, 1))
-
-    sys = ml.ss(sa, sb, sc, sd)
-    return sys, ml.damp(sys, doprint=True)
-
-# s = short_num()[1][2]
-# print(s)
-# print(short_eig)
-
-# PHUGOID ---------------------------------------------
-# ANALYTICAL
-phug = Matrix([[CXu - 2*muc*x, CZ0, 0],
-               [CZu, 0, 2*muc],
-               [0, -x, 1]])
-
-phug_eig = np.array(solve(phug.det(),x))*V0/c
-
-# NUMERICAL
-def phug_num():
-    c11 = [-2 * muc * c / V0, 0, 0, 0]
-    c12 = [0, (CZadot - 2 * muc) * c / V0, 0, 0]
-    c13 = [0, 0, -c / V0, 0]
-    c14 = [0, Cmadot * c / V0, 0, -2 * muc * KY2 * c / V0]
-    C1 = np.array([c11,
-                   c12,
-                   c13,
-                   c14])
-
-    c21 = [CXu, CXa, CZ0, CXq]
-    c22 = [CZu, CZa, -CX0, CZq + 2 * muc]
-    c23 = [0, 0, 0, 1]
-    c24 = [Cmu, Cma, 0, Cmq]
-
-    C2 = np.array([c21,
-                   c22,
-                   c23,
-                   c24])
-
-    C3 = np.array([[CXde],
-                   [CZde],
-                   [0],
-                   [Cmde]])
-
-    sa = -np.dot(np.linalg.inv(C1), C2)
-    sa[3] = np.zeros((1,4))[0]
-    sa[:,1] = np.zeros((4,))
-
-    sb = -np.dot(np.linalg.inv(C1), C3)
-    sc = np.array([[1, 0, 0, 0],
-                   [0, 0, 0, 0],
-                   [0, 0, 1, 0],
-                   [0, 0, 0, 1]])
-    sd = np.zeros((4, 1))
-
-    sys = ml.ss(sa, sb, sc, sd)
-    return sys, ml.damp(sys, doprint=False)
-
-print(phug_num()[0])
-# print(phug_eig)
+# DUTCH ROLL + APERIODIC ROLL
+dutch = Matrix([[-Clb + .5*Clr*x + 2*mub*KXZ*x**2, Clp - 4*mub*KX2*x],
+                [-Cnb + .5*Cnr*x - 2*mub*KZ2*x**2, Cnp + 4*mub*KXZ*x]])
+dutch = dutch.det()
+dutch_eig = np.array(solve(dutch,x))*V0/b
