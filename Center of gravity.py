@@ -39,15 +39,15 @@ def getfuelx(time):
 # --------------------------------------------------------
 #                           PAYLOAD
 # --------------------------------------------------------
-pilot1 = ["Pilot1", 75, 1]
-pilot2 = ["Pilot2", 75, 2]
-o1 = ["ABattegazzore", 75, 3]
-o2 = ["FBranca", 100, 4]
-o3 = ["YPrencipe", 75, 5]
+pilot1 = ["Pilot1", 82, 1]
+pilot2 = ["Pilot2", 98, 2]
+o1 = ["YPrencipe", 59, 3]
+o2 = ["FBranca", 60, 4]
+o3 = ["ABattegazzore", 63, 5]
 o4 = ["Nout", 75, 6]
-o5 = ["Kristen", 60, 7]
-o6 = ["ASepulcri", 80, 8]
-coordinator = ["Coord", 90, 10]
+o5 = ["ASepulcri", 86, 7]
+o6 = ["Kirsten", 89, 8]
+coordinator = ["Coord", 79, 10]
 
 
 passengers = pilot1, pilot2, o1, o2, o3, o4, o5, o6, coordinator
