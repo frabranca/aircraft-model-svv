@@ -21,7 +21,7 @@ class ac:
     # Stationary flight condition
 
         self.hp0 = hp0      	      # pressure altitude in the stationary flight condition [m]
-        self.V0 = V[0]           # true airspeed in the stationary flight condition [m/sec]
+        self.V0 = 100           # true airspeed in the stationary flight condition [m/sec]
         self.alpha0 = radians(5)            # angle of attack in the stationary flight condition [rad]
         self.th0 = radians(4)            # pitch angle in the stationary flight condition [rad]
         self.rho0, self.Temp0, self.R = 1.2250, 288.15, 287.05          # air density, temperature at sea level [kg/m^3, K] + GAS CONSTANT
