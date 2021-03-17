@@ -259,5 +259,6 @@ if __name__ == "__main__":
 
     y = ac.sym_input_response(V[0],input)
     ac.sym_plot(200, x0)
+    ac.asym_plot(200, x0)
     #plt.plot(ac.t, y)
     #plt.show()
