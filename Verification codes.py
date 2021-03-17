@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 ac = ac()
 kts = 0.514444
 hp0 = 5000      	      # pressure altitude in the stationary flight condition [m]
-V0 = 250*kts            # true airspeed in the stationary flight condition [m/sec]
+V0 = 100            # true airspeed in the stationary flight condition [m/sec]
 alpha0 = radians(5)            # angle of attack in the stationary flight condition [rad]
 th0 = radians(4)            # pitch angle in the stationary flight condition [rad]
 rho0, Temp0, R = 1.2250, 288.15, 287.05          # air density, temperature at sea level [kg/m^3, K] + GAS CONSTANT
