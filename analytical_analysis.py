@@ -25,6 +25,6 @@ if __name__ == "__main__":
     sys1 = ac.sym_system(V)
     poles, eigenvectors = np.linalg.eig(ac.A)
     array = ml.damp(sys1)
-    print(P(array[2]))
+    print(T(array[2]))
 
 

@@ -3,7 +3,7 @@ import numpy as np
 import control.matlab as ml
 from analytical_main import ac
 import matplotlib.pyplot as plt
-ac = ac()
+ac = ac(hp0=5000)
 kts = 0.514444
 hp0 = 5000      	      # pressure altitude in the stationary flight condition [m]
 V0 = 100            # true airspeed in the stationary flight condition [m/sec]
