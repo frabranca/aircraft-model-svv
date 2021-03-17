@@ -103,7 +103,7 @@ def cg(time):
 # plt.plot(t, len(t)*[req[0]], t, len(t)*[req[1]])
 plt.plot(t, cg(t))
 plt.plot(t, [x_ac]*len(t))
-plt.show()
+#plt.show()
 
-print(req)
-print(cg(0))
+print(mass(2000))
+print(cg(2000))
