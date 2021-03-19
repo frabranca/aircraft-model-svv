@@ -3,13 +3,20 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import scipy.interpolate as sc
 
+fd = pd.read_excel('data.xlsx')
+t = fd['t'].values
+fu = fd['fu1'].values + fd['fu2'].values
+
 meters = 0.0254  # multiply to get meters
 kg = 0.453592
 g = 9.81
 m_dot = 0.048  # kg/s
-t = np.arange(0,3600,1)# s
+t = np.arange(0, 86*60, 1)# s
 cg_bem = 291.65 * meters # m
 req = [276.1*meters, 285.8*meters]
+
+t_bchange = 51*60 + 44
+t_echange = 53*60 + 40
 
 mac = 80.98 * meters
 x_ac = 261.56 * meters + mac/4
@@ -46,7 +53,8 @@ o2 = ["FBranca", 60, 4]
 o3 = ["ABattegazzore", 63, 5]
 o4 = ["Nout", 75, 6]
 o5 = ["ASepulcri", 86, 7]
-o6 = ["Kirsten", 89, 8]
+o6 = ["Kirsten", 89, 8]  # orginal
+#o6 = ["Kirsten", 89, 9]  # moved
 coordinator = ["Coord", 79, 10]
 
 
@@ -63,6 +71,7 @@ for i in passengers:
 
 loc = []
 
+
 def getpassengerposition(seat):
     if seat == 1 or seat == 2:
         position = 131 * meters
@@ -76,10 +85,12 @@ def getpassengerposition(seat):
         position = 170 * meters
     return position
 
+
 for i in seat:
     loc.append(getpassengerposition(i))
 
 ramp_mass = BEM + block_fuel + sum(weight)
+
 
 def mass(time):
     m = BEM + sum(weight) + block_fuel-m_dot*time
@@ -101,9 +112,15 @@ def cg(time):
 # plt.plot(mf, x_mf(mf)*mf)
 #plt.plot(mf_x, x)
 # plt.plot(t, len(t)*[req[0]], t, len(t)*[req[1]])
+plt.figure(1)
 plt.plot(t, cg(t))
-plt.plot(t, [x_ac]*len(t))
-#plt.show()
 
-print(mass(2000))
-print(cg(2000))
+plt.figure(2)
+plt.title("Mass over time")
+plt.xlabel("Time [s]")
+plt.ylabel("Mass [kg]")
+plt.plot(t, mass(t))
+plt.show()
+
+print(req)
+print("start: ", cg(0), "begin change", cg(t_bchange), "end change", cg(t_echange), "end: ", cg(t[-1]))
