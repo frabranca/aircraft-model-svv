@@ -3,8 +3,8 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import scipy.interpolate as sc
 
-fd = pd.read_excel('data.xlsx')
-t = fd['t'].values
+fd = pd.read_excel('fuel-only-data.xlsx')
+t_fuel = fd['t'].values
 fu = fd['fu1'].values + fd['fu2'].values
 
 meters = 0.0254  # multiply to get meters
@@ -26,7 +26,7 @@ mf = np.hstack((d[0],d[2])) * kg  # in kg
 mf_x = np.hstack((d[1],d[3]))*100 * kg * meters  # kg*s
 x = mf_x/mf  # m
 
-x_mf = sc.interpolate.interp1d(mf,x,kind='cubic')  # m, f(kg)
+x_mf = sc.interpolate.interp1d(mf, x, kind='cubic')  # m, f(kg)
 
 # --------------------------------------------------------
 #                           BEM
@@ -38,10 +38,12 @@ BEM = 9165.0*kg  # [kg]  = to standard aircraft mass?
 # --------------------------------------------------------
 block_fuel = 2700 * kg
 
+
 def getfuelx(time):
     mass_fuel = block_fuel-m_dot*time
     x = x_mf(mass_fuel)
     return x
+
 
 # --------------------------------------------------------
 #                           PAYLOAD
@@ -53,8 +55,8 @@ o2 = ["FBranca", 60, 4]
 o3 = ["ABattegazzore", 63, 5]
 o4 = ["Nout", 75, 6]
 o5 = ["ASepulcri", 86, 7]
-o6 = ["Kirsten", 89, 8]  # orginal
-#o6 = ["Kirsten", 89, 9]  # moved
+o6 = ["Kirsten", 89, 8]  # original
+# o6 = ["Kirsten", 89, 9]  # moved
 coordinator = ["Coord", 79, 10]
 
 
