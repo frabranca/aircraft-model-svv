@@ -2,6 +2,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 import scipy.interpolate as sc
+import seaborn as sns
+
+sns.set_theme()
 
 fd = pd.read_excel('fuel-only-data.xlsx')
 t = fd['t'].values
@@ -137,20 +140,25 @@ cg_final[begin_ind:end_ind] = cg_change_list[begin_ind:end_ind]
 
 plt.figure(1)
 plt.subplot(121)
-plt.title("Cg x location over time")
+plt.title("CG excursion over time")
 plt.xlabel("Time [s]")
 plt.ylabel("CG_x [m]")
-plt.plot(t, cg_change_list, t, cg_final)
+#plt.plot(t, cg_change_list, label="8 to 9")
+plt.plot(t, cg_final, color="green")
+
 
 plt.subplot(122)
-plt.title("Mass over time")
+plt.title("Aircraft's mass over time")
 plt.xlabel("Time [s]")
 plt.ylabel("Mass [kg]")
-plt.plot(t, mass(t))
+plt.plot(t, mass(t), color="red")
 
-plt.figure(2)
-plt.plot(mass(t), cg_final)
 plt.show()
 
 print(req)
-# print("start: ", cg(0), "begin change", cg(t_bchange), "end change", cg(t_echange), "end: ", cg(t[-1]))
+print("CG x coordinates at selected points of the flight")
+print("-------------------------------------------------")
+print("start: ", cg_final[0], "end: ", cg_final[-1])
+print("right before kirsten moves: ", cg_normal_list[begin_ind], "right after kirsten moves: ", cg_change_list[begin_ind])
+print("right before kirsten moves back: ", cg_change_list[end_ind], "right after kirsten moves back: ", cg_normal_list[end_ind])
+
