@@ -1,4 +1,3 @@
-import seaborn as sns
 import numpy as np
 from flightdataprocessing import short_data, phugoid_data
 import Numerical_main as nm
@@ -17,10 +16,25 @@ class mode():
         self.th0 = np.radians(self.cond[5][0])
         self.q0 = np.radians(self.cond[6][0])
         self.x0 = np.array([self.u0, self.a0, self.th0, self.q0])
+        self.totalplot = np.zeros((4,np.size(self.tplot)))
+        self.totalplot[0,:] = self.uplot
+        self.totalplot[1,:] = self.aplot
+        self.totalplot[2,:] = self.thplot
+        self.totalplot[3,:] = self.qplot
+
 
 # short = mode(short_data)
 phugoid = mode(phugoid_data)
 ac_phugoid = nm.ac(m = phugoid.m0, initial = phugoid.x0, hp0 = phugoid.h0, V0 = phugoid.V0)
 y = ac_phugoid.sym_input_response(phugoid.t, phugoid.deplot, phugoid.x0)
-plt.plot(phugoid.t, y[0])
+plt.subplot(121)
+plt.title("numerical model")
+plt.plot(phugoid.t, y[0].T[0], label="u")
+plt.plot(phugoid.t, y[0].T[1], label="alpha")
+plt.plot(phugoid.t, y[0].T[2], label="theta")
+plt.plot(phugoid.t, y[0].T[3], label="q")
+plt.legend()
+plt.subplot(122)
+plt.title("flight data")
+plt.plot(phugoid.t, phugoid.totalplot.T)
 plt.show()
