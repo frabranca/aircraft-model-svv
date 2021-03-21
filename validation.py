@@ -12,9 +12,9 @@ class mode():
         self.V0 = self.cond[2][0]
         self.t0 = self.cond[3][0]
         self.u0 = self.cond[4][0]
-        self.a0 = np.radians(self.cond[4][0])
-        self.th0 = np.radians(self.cond[5][0])
-        self.q0 = np.radians(self.cond[6][0])
+        self.a0 = self.cond[4][0]
+        self.th0 = self.cond[5][0]
+        self.q0 = self.cond[6][0]
         self.x0 = np.array([self.u0, self.a0, self.th0, self.q0])
         self.totalplot = np.zeros((4,np.size(self.tplot)))
         self.totalplot[0,:] = self.uplot
