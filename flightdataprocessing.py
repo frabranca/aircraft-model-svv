@@ -55,10 +55,8 @@ def approx(t, x, step=35):
     tt = tt.reshape(int(np.size(tt)/step), step)
 
     xx_avg = np.average(xx, axis=1)
-    tt_avg = np.average(tt, axis=1)
 
     xx = (np.ones((np.shape(xx))).T * xx_avg).T
-    tt = (np.ones((np.shape(tt))).T * tt_avg).T
     xx = np.concatenate(xx)
     tt = np.concatenate(tt)
 
