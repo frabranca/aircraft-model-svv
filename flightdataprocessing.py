@@ -36,12 +36,19 @@ fu = (fd['fu1'].values + fd['fu2'].values)*kg
 m = minitial - fu
 
 # MANOEUVRES TIME INTERVALS
-short = (3685, 3685 + 20)
-phugoid = (55*60 + 44, 58*60 + 20)
-dutch = (59*60+2, 59*60 + 25 + 5 + 2)
-dutch_yawdamp = (59*60 + 50 + 5, 59*60 + 70 + 5)
-aperiodic = (60*60 + 2*60 + 31+8, 60*60 + 2*60 + 61+8)
-spiral = (60*60 + 4*60, 4300)
+# short = np.array([3685, 3685 + 20])
+short = np.array([3657+2.3, 3670])
+# phugoid = np.array([55*60 + 44, 58*60 + 20])
+# dutch = np.array([59*60+2, 59*60 + 25 + 5 + 2])
+# dutch_yawdamp = np.array([59*60 + 50 + 5, 59*60 + 70 + 5])
+# aperiodic = np.array([60*60 + 2*60 + 31+8, 60*60 + 2*60 + 61+8])
+# spiral = np.array([60*60 + 4*60, 4300])
+phugoid = np.array([3344, 3500])
+dutch = np.array([3542, 3572])
+dutch_yawdamp = np.array([3595, 3615])
+aperiodic = np.array([3759, 3789])
+spiral = np.array([3840, 4300])
+search  = np.array([3657+2.3, 3670])
 
 def approx(t, x, step=35):
     xx = np.array(x)
@@ -79,14 +86,14 @@ def symplot(mode):
     V0 = tas[ind] #m/s
     t0 = t[ind] #s
     u0 = (vt[0]-V0)/V0 # -
-    a0 = a[ind] #rad
-    th0 = theta[ind] #rad
+    a0 = np.array([0.0]) #rad
+    th0 = np.array([0.0]) #rad
     q0 = q[ind]*c/V0 #rad
 
     # state variables
     uplot = (vt - V0)/V0 # -
-    aplot = a[(t >= start) & (t <= end)]
-    thplot = theta[(t >= start) & (t <= end)]
+    aplot = a[(t >= start) & (t <= end)] - a[ind]
+    thplot = theta[(t >= start) & (t <= end)] - theta[ind]
     qplot = q[(t >= start) & (t <= end)] * c/V0
     deplot = de[(t >= start) & (t <= end)]
 
@@ -126,8 +133,9 @@ def asymplot(mode):
     x0 = np.array([m0, h0, V0, t0, beta0, phi0, p0, r0])
     return x0, tplot, phiplot, pplot, rplot
 
-# short_data = symplot(short)
+short_data = symplot(short)
 phugoid_data = symplot(phugoid)
+search_data = symplot(search)
 
 # dutch_data = asymplot(dutch)
 # dutch_yawdamp_data = asymplot(dutch_yawdamp)
