@@ -138,12 +138,18 @@ phugoid_data = symplot(phugoid)
 # asymplot(spiral)
 
 if __name__ == "__main__":
-    # from scipy import integrate
-    # def f(x): return x*x
-    # x = np.arange(0.,1.,0.01)
-    #
-    # def beta(x, f):
-    #     b = []
-    #     for i in x:
-    #         b.append(integrate.quad(f, 0., i)[0])
-    #     return b
+    x = np.linspace(0,10,1000)
+    y = np.sin(x)
+    xav, yav = approx(x,y)
+    print(np.size(y), np.size(yav))
+    plt.plot(xav,yav)
+    plt.show()
+    from scipy import integrate
+    def f(x): return x*x
+    x = np.arange(0.,1.,0.01)
+
+    def beta(x, f):
+        b = []
+        for i in x:
+            b.append(integrate.quad(f, 0., i)[0])
+        return b

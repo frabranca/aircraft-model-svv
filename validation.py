@@ -23,10 +23,10 @@ class mode():
         self.totalplot[1,:] = self.aplot
         self.totalplot[2,:] = self.thplot
         self.totalplot[3,:] = self.qplot
-        print(self.a0, self.aplot[0])
 phugoid = mode(phugoid_data)
 
-tapprox, deapprox = approx(phugoid.tplot, phugoid.deplot)
+tapprox, deapprox = approx(phugoid.tplot, phugoid.deplot, step=2)
+print(deapprox)
 
 ac_phugoid = nm.ac(m = phugoid.m0, initial = phugoid.x0, hp0 = phugoid.h0, V0 = phugoid.V0)
 y = ac_phugoid.sym_input_response(phugoid.t, phugoid.deplot, phugoid.x0)
@@ -35,11 +35,12 @@ plt.title("numerical model")
 # plt.plot(phugoid.t, y[0].T[0], label="u")
 # plt.plot(phugoid.t, y[0].T[1], label="alpha")
 # plt.plot(phugoid.t, y[0].T[2], label="theta")
-plt.plot(phugoid.t, phugoid.qplot)
-plt.plot(phugoid.t, y[0].T[3], label="q")
+# plt.plot(phugoid.t, phugoid.qplot)
+# plt.plot(phugoid.t, y[0].T[3], label="q")
+plt.plot(phugoid.t, phugoid.deplot)
 plt.legend()
 plt.subplot(122)
-plt.plot(phugoid.t, phugoid.deplot)
+plt.plot(deapprox, deapprox)
 # plt.title("flight data")
 
 plt.show()
