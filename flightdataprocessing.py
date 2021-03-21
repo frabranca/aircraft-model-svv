@@ -219,12 +219,13 @@ phugoid_data = symplot(phugoid)
 # spiral_data = asymplot(spiral)
 # asymplot(spiral)
 
-from scipy import integrate
-def f(x): return x*x
-x = np.arange(0.,1.,0.01)
+if __name__ == "__main__":
+    from scipy import integrate
+    def f(x): return x*x
+    x = np.arange(0.,1.,0.01)
 
-def beta(x, f):
-    b = []
-    for i in x:
-        b.append(integrate.quad(f, 0., i)[0])
-    return b
+    def beta(x, f):
+        b = []
+        for i in x:
+            b.append(integrate.quad(f, 0., i)[0])
+        return b
