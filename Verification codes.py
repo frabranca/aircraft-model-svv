@@ -125,7 +125,7 @@ phug = Matrix([[CXu - 2*muc*x, CXa, CZ0, CXq],
 #                [0, 0, -x, 1],
 #                [Cmu, Cma, 0, Cmq]])
 phug = phug.det()
-phug_eig = np.array(solve(phug,x))*V0/c
+phug_eig = np.array(solve(phug, x)) * V0 / c
 ephug = abs(np.abs(phug_eig[0]) - np.abs(sym_eig[0])) # / np.abs(phug_eig[0])*100
 print(phug_eig)
 

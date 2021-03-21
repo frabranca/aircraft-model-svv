@@ -3,6 +3,7 @@ import numpy as np
 from numpy.linalg import *
 import control.matlab as ml
 import matplotlib.pyplot as plt
+import seaborn as sns
 # unit conversion
 kts = 0.514444
 
@@ -15,21 +16,28 @@ asym_x = [r'$\beta$', r'$\phi$', r'$\frac{pb}{2V}$', r'$\frac{rb}{2V}$']
 color = ['r', 'b', 'c', 'k']
 
 class ac:
-    def __init__(self, hp0=5000):
+    def __init__(self, m=5579.791, initial=np.array([0.,0.,0.,0.]), hp0=5000, V0=100):
     # Citation 550 - Linear simulation
     # xcg = 0.25 * c
     # Stationary flight condition
 
         self.hp0 = hp0      	      # pressure altitude in the stationary flight condition [m]
-        self.V0 = 100           # true airspeed in the stationary flight condition [m/sec]
-        self.alpha0 = radians(5)            # angle of attack in the stationary flight condition [rad]
-        self.th0 = radians(4)            # pitch angle in the stationary flight condition [rad]
+        self.V0 = V0           # true airspeed in the stationary flight condition [m/sec]
+
+        # initial conditions
+        self.u0 = initial[0]
+        self.a0 = initial[1]
+        self.th0 = initial[2]
+        self.q0 = initial[3]
+
+        # self.alpha0 = radians(5)            # angle of attack in the stationary flight condition [rad]
+        # self.th0 = radians(4)            # pitch angle in the stationary flight condition [rad]
         self.rho0, self.Temp0, self.R = 1.2250, 288.15, 287.05          # air density, temperature at sea level [kg/m^3, K] + GAS CONSTANT
         self.g = 9.81
-        self.W = 60500           # [N]       (aircraft weight)
+        self.W = m*self.g           # [N]       (aircraft weight)
         self.m = self.W/self.g
         self.dt = 0.01
-        self.t = np.arange(0., 20.+self.dt, self.dt)
+        self.t = np.arange(0., 40.+self.dt, self.dt)
     # Aerodynamic properties
         self.e = 0.8            # Oswald factor [ ]
         self.CD0 = 0.04            # Zero lift drag coefficient [ ]
@@ -69,14 +77,14 @@ class ac:
         # Lift and drag coefficient
 
         self.CL = 2 * self.W / (self.rho * self.V0 ** 2 * self.S)              # Lift coefficient [ ]
-        self.CD = self.CD0 + (self.CLa * self.alpha0) ** 2 / (pi * self.A * self.e) # Drag coefficient [ ]
+        self.CD = self.CD0 + (self.CLa * self.a0) ** 2 / (pi * self.A * self.e) # Drag coefficient [ ]
 
         # Stability derivatives
 
-        self.CX0 = self.W * sin(self.th0) / (0.5 * self.rho * self.V0 ** 2 * self.S)
+        self.CX0 = self.W * np.sin(self.th0) / (0.5 * self.rho * self.V0 ** 2 * self.S)
         self.CXu, self.CXa, self.CXadot, self.CXq, self.CXde = -0.0279, +0.47966, +0.08330, -0.28170, -0.03728
 
-        self.CZ0 = -self.W * cos(self.th0) / (0.5 * self.rho * self.V0 ** 2 * self.S)
+        self.CZ0 = -self.W * np.cos(self.th0) / (0.5 * self.rho * self.V0 ** 2 * self.S)
         self.CZu, self.CZa, self.CZadot, self.CZq, self.CZde = -0.37616, -5.74340, -0.00350, -5.66290, -0.69612
 
         self.Cmu, self.Cmadot, self.Cmq = +0.06990, +0.17800, -8.79415
@@ -102,11 +110,11 @@ class ac:
         self.Cndr = -0.0939
 
     # SYMMETRIC
-    def sym_system(self,V):
-        c11 = [-2 * self.muc * self.c / V, 0, 0, 0]
-        c12 = [0, (self.CZadot - 2 * self.muc) * self.c / V, 0, 0]
-        c13 = [0, 0, -self.c / V, 0]
-        c14 = [0, self.Cmadot * self.c / V, 0, -2 * self.muc * self.KY2 * self.c / V]
+    def sym_system(self):
+        c11 = [-2 * self.muc * self.c / self.V0, 0, 0, 0]
+        c12 = [0, (self.CZadot - 2 * self.muc) * self.c / self.V0, 0, 0]
+        c13 = [0, 0, -self.c / self.V0, 0]
+        c14 = [0, self.Cmadot * self.c / self.V0, 0, -2 * self.muc * self.KY2 * self.c / self.V0]
         C1 = np.array([c11,
                        c12,
                        c13,
@@ -126,9 +134,11 @@ class ac:
                        [self.CZde],
                        [0],
                        [self.Cmde]])
-
-        self.A = -np.matmul(np.linalg.inv(C1), C2)
-        self.B = -np.matmul(np.linalg.inv(C1), C3)
+        # print(C1)
+        # print(C2)
+        # print(C3)
+        self.A = -np.dot(np.linalg.inv(C1), C2)
+        self.B = -np.dot(np.linalg.inv(C1), C3)
         self.C = np.eye(4)
         self.D = np.zeros((4, 1))
 
@@ -136,54 +146,65 @@ class ac:
 
         return self.sys
 
-    def sym_response(self, V, x0):
-        system = self.sym_system(V)
+    def sym_response(self, x0):
+        system = self.sym_system()
         self.y, self.t = ml.impulse(system, self.t, x0)
         return self.y
 
-    def sym_input_response(self, V, u):
-        system = self.sym_system(V)
-        self.y = ml.lsim(system, u, self.t)
-        return self.y[0]
+    def sym_input_response(self, t, u, x0):
+        system = self.sym_system()
+        self.y = ml.lsim(system, u, t, x0)
+        return self.y
 
-    def sym_plot(self, V, x0):
-        y = self.sym_response(V, x0)
+    def sym_plot(self, x0):
+        sns.set_theme()
+        y = self.sym_response(x0)
         plt.figure()
-
+        f = 20
+        l = 20
+        t = 13
         plt.subplot(221)
-        plt.title('Normalized Velocity Change')
+        plt.title('Normalized Velocity Change',fontsize=f)
         plt.plot(self.t, y[:,0], color[0], label=sym_x[0])
-        plt.grid()
-        plt.legend()
+        # plt.grid()
+        plt.legend(prop={'size': l})
+        plt.xticks(fontsize=t)
+        plt.yticks(fontsize=t)
 
         plt.subplot(222)
-        plt.title('Angle of attack')
+        plt.title('Angle of attack',fontsize=f)
         plt.plot(self.t, y[:,1], color[1], label=sym_x[1])
-        plt.grid()
-        plt.legend()
+        # plt.grid()
+        plt.legend(prop={'size': l})
+        plt.xticks(fontsize=t)
+        plt.yticks(fontsize=t)
 
         plt.subplot(223)
-        plt.title('Pitch angle')
+        plt.title('Pitch angle',fontsize=f)
         plt.plot(self.t, y[:,2], color[2], label=sym_x[2])
-        plt.grid()
-        plt.legend()
+        # plt.grid()
+        plt.legend(prop={'size': l})
+        plt.xticks(fontsize=t)
+        plt.yticks(fontsize=t)
 
         plt.subplot(224)
-        plt.title('Pitch rate')
+        plt.title('Pitch rate',fontsize=f)
         plt.plot(self.t, y[:,3], color[3], label=sym_x[3])
         plt.grid()
-        plt.legend()
+        plt.legend(prop={'size': l})
+        plt.xticks(fontsize=t)
+        plt.yticks(fontsize=t)
 
         plt.show()
 
-    def sym_eig(self, V): return ml.damp(self.sym_system(V))
+    def sym_eig(self): return ml.damp(self.sym_system())
 
     # ASYMMETRIC
-    def asym_system(self, V):
-        c11 = [(2*self.mub - self.CYbdot)*self.b/V, 0, 0, 0]
-        c12 = [0, self.b/(2*V), 0, 0]
-        c13 = [0, 0, 4*self.mub*self.KX2*self.b/V, -4*self.mub*self.KXZ*self.b/V]
-        c14 = [-self.Cnbdot * self.b/V, 0, -4*self.mub*self.KXZ*self.b/V, 4*self.mub*self.KZ2*self.b/V]
+    def asym_system(self):
+        c11 = [(2*self.mub - self.CYbdot)*self.b/self.V0, 0, 0, 0]
+        c12 = [0, self.b/(2 * self.V0), 0, 0]
+        c13 = [0, 0, 4*self.mub*self.KX2*self.b/self.V0, -4*self.mub*self.KXZ*self.b/self.V0]
+        c14 = [-self.Cnbdot * self.b/self.V0, 0, -4*self.mub*self.KXZ*self.b/self.V0, 4*self.mub*self.KZ2*self.b/self.V0]
         C1 = np.array([c11,
                        c12,
                        c13,
@@ -211,13 +232,13 @@ class ac:
         self.sys = ml.ss(self.A, self.B, self.C, self.D)
         return self.sys
 
-    def asym_response(self, V, x0):
-        system = self.asym_system(V)
+    def asym_response(self, x0):
+        system = self.asym_system()
         self.y, self.t = ml.initial(system, self.t, x0)
         return self.y
 
-    def asym_plot(self, V, x0):
-        y = self.asym_response(V, x0)
+    def asym_plot(self, x0):
+        y = self.asym_response(x0)
         plt.figure()
 
         plt.subplot(221)
@@ -246,21 +267,60 @@ class ac:
 
         plt.show()
 
-    def asym_eig(self, V): return ml.damp(self.asym_system(V))
+    def asym_eig(self): return ml.damp(self.asym_system())
 
-if __name__ == "__main__":
-    ac = ac()
-    # u0 = (V[0]-ac.V0)/ac.V0
-    # # x0 = np.array([u0,radians(1.4),radians(1.4),0.])
-    # x0 = np.array([0.,radians(15),0.,0.])
-    # # ac.sym_eig(V[0])
-    # input = np.zeros((1, len(ac.t)))[0]
-    # input[0:9] = 0.15
-    #
-    # y = ac.sym_input_response(V[0],input)
-    # ac.sym_plot(200, x0)
-    ac.asym_plot(200, x0)
-    #plt.plot(ac.t, y)
-    #plt.show()
-    sys = ac.asym_system(V[0])
-    ml.damp(sys)
+
+# if __name__ == "__main__":
+#     v = 100
+#     x0 = np.array([0.,0.,0.,0.])
+#     ac = ac(initial=x0, V0=v)
+#     input = np.zeros((1, len(ac.t)))[0]
+#     input[0:9] = -0.005
+#     y = ac.sym_input_response(ac.t, input, x0)
+#     print(y)
+#     s = ac.sym_system()
+#     # u0 = (v-ac.V0)/ac.V0
+#     # x0 = np.array([u0, ac.alpha0, ac.th0, 0.])
+#     # ac.sym_eig()
+#     # # x0 = np.array([0.,radians(15),0.,0.])
+#     # # # ac.sym_eig(V[0])
+#     # input = np.zeros((1, len(ac.t)))[0]
+#     # input[0:9] = -0.005
+#     # plt.plot(ac.t, input)
+#     # ac.sym_plot(v, input, x0)
+#     # plt.grid()
+
+from flightdataprocessing import short_data, phugoid_data
+
+class mode():
+    def __init__(self, data):
+        self.cond, self.tplot, self.uplot, self.aplot, self.thplot, self.qplot, self.deplot = data
+        self.h0 = self.cond[0][0]
+        self.V0 = self.cond[1][0]
+        self.t0 = self.cond[2][0]
+        self.u0 = self.cond[3][0]
+        self.a0 = np.radians(self.cond[4][0])
+        self.th0 = np.radians(self.cond[5][0])
+        self.q0 = np.radians(self.cond[6][0])
+        self.x0 = np.array([self.u0, self.a0, self.th0, self.q0])
+
+# short = mode(short_data)
+phugoid = mode(phugoid_data)
+# ac = ac(m = phugoid.m0, initial = phugoid.x0, hp0 = phugoid.h0, V0 = phugoid.V0)
+#
+# t = np.linspace(0,10,len(phugoid.tplot))
+# y = ac.sym_input_response(t, phugoid.deplot, phugoid.x0)
+
+# plt.plot(short.tplot, short.thplot)
+# plt.plot(short.tplot, short.aplot)
+# plt.plot(phugoid.tplot, phugoid.uplot)
+
+# plt.plot(phugoid.tplot, y[0][:,0], label='u')
+# plt.plot(short.tplot, y[0][:,1], label='alpha')
+# plt.plot(short.tplot, y[0][:,2], label='theta')
+# plt.plot(short.tplot, y[0][:,3], label='qc/V')
+plt.legend()
+
+plt.plot(phugoid.tplot, phugoid.deplot)
+
+plt.show()
