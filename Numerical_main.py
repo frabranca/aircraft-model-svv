@@ -32,7 +32,6 @@ class ac:
         self.W = m*self.g           # [N]       (aircraft weight)
         self.m = self.W/self.g
         self.dt = 0.01
-        self.t = np.arange(0., 40.+self.dt, self.dt)
     # Aerodynamic properties
         self.e = 0.8            # Oswald factor [ ]
         self.CD0 = 0.04            # Zero lift drag coefficient [ ]
@@ -139,9 +138,9 @@ class ac:
 
         return self.sys
 
-    def sym_response(self, x0):
+    def sym_response(self, x0, t = np.linspace(0,40,1000)):
         system = self.sym_system()
-        self.y, self.t = ml.impulse(system, self.t, x0)
+        self.y, t = ml.impulse(system, t, x0)
         return self.y
 
     def sym_input_response(self, t, u, x0):
