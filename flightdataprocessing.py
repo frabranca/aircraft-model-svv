@@ -36,19 +36,13 @@ fu = (fd['fu1'].values + fd['fu2'].values)*kg
 m = minitial - fu
 
 # MANOEUVRES TIME INTERVALS
-# short = np.array([3685, 3685 + 20])
 short = np.array([3657+2.3, 3670])
-# phugoid = np.array([55*60 + 44, 58*60 + 20])
-# dutch = np.array([59*60+2, 59*60 + 25 + 5 + 2])
-# dutch_yawdamp = np.array([59*60 + 50 + 5, 59*60 + 70 + 5])
-# aperiodic = np.array([60*60 + 2*60 + 31+8, 60*60 + 2*60 + 61+8])
-# spiral = np.array([60*60 + 4*60, 4300])
 phugoid = np.array([3344, 3500])
 dutch = np.array([3542, 3572])
 dutch_yawdamp = np.array([3595, 3615])
 aperiodic = np.array([3759, 3789])
-spiral = np.array([3840, 4300])
-search  = np.array([3657+2.3, 3670])
+spiral = np.array([3840, 3840+100])
+search  = np.array([3840, 3840+100])
 
 def approx(t, x, step=35):
     xx = np.array(x)
@@ -109,29 +103,27 @@ def asymplot(mode):
 
     # time
     tplot = t[(t >= start) & (t <= end)] #s
-    # velocity
-    vt = tas[(t >= start) & (t <= end)] #m/s
 
     # initial conditions
     b = 15.911
     ind = np.where(t == tplot[0])[0]
     m0 = m[ind] # kg
     h0 = hp[ind] # m
-    V0 = tas[ind] #m/s
-    t0 = t[ind] #s
-    beta0 = 0. #(vt[0]-V0)/V0 # -
-    phi0 = np.array([0.0]) #rad
-    r0 = r[ind]*b/V0/2 #np.array([0.0]) #rad
-    p0 = p[ind]*b/V0/2 #rad
+    V0 = tas[ind] # m/s
+    t0 = t[ind] # s
+    beta0 = 0.  # rad
+    phi0 = np.array([0.0]) # rad
+    r0 = np.array([0.0]) # r[ind]*b/V0/2 # #rad
+    p0 = np.array([0.0]) # p[ind]*b/V0/2 #rad
 
     # state variables
     phiplot = phi[(t >= start) & (t <= end)] - phi[ind]
-    rplot = r[(t >= start) & (t <= end)] #- r[ind]
-    pplot = p[(t >= start) & (t <= end)] #- p[ind]
+    rplot = (r[(t >= start) & (t <= end)] - r[ind])* b/(2*V0)
+    pplot = (p[(t >= start) & (t <= end)] - p[ind])* b/(2*V0)
 
     # inputs
-    daplot = da[(t >= start) & (t <= end)]
-    drplot = dr[(t >= start) & (t <= end)]
+    daplot = -da[(t >= start) & (t <= end)]  + da[ind]
+    drplot = -dr[(t >= start) & (t <= end)]  + dr[ind]
 
     x0 = np.array('dtype=object', [m0, h0, V0, t0, beta0, phi0, p0, r0])
     return x0, tplot, phiplot, rplot, pplot, daplot, drplot
@@ -141,13 +133,12 @@ phugoid_data = symplot(phugoid)
 dutch_data = asymplot(dutch)
 dutch_yawdamp_data = asymplot(dutch_yawdamp)
 aperiodic_data = asymplot(aperiodic)
-search_data = symplot(search)
-
-# dutch_data = asymplot(dutch)
-# dutch_yawdamp_data = asymplot(dutch_yawdamp)
-# aperiodic_data = asymplot(aperiodic)
-# spiral_data = asymplot(spiral)
-# asymplot(spiral)
+search_data = asymplot(search)
+dutch_data = asymplot(dutch)
+dutch_yawdamp_data = asymplot(dutch_yawdamp)
+aperiodic_data = asymplot(aperiodic)
+spiral_data = asymplot(spiral)
+asymplot(spiral)
 
 if __name__ == "__main__":
     x = np.linspace(0,10,1000)

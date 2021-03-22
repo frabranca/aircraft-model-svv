@@ -1,5 +1,5 @@
 import numpy as np
-from flightdataprocessing import approx, phugoid_data
+from flightdataprocessing import approx, search_data
 import Numerical_main as nm
 from matplotlib import pyplot as plt
 import seaborn as sns
@@ -36,9 +36,7 @@ class modeasym():
         self.r0 = self.cond[6][0]
         self.p0 = self.cond[7][0]
         self.x0 = np.array([self.beta0, self.phi0, self.r0, self.p0])
-
         self.totalplot = np.zeros((3,np.size(self.tplot)))
-        # self.totalplot[0,:] = self.
         self.totalplot[0,:] = self.phiplot
         self.totalplot[1,:] = self.rplot
         self.totalplot[2,:] = self.pplot
@@ -48,46 +46,45 @@ class modeasym():
         self.input[0,:] = self.daplot
         self.input[1,:] = self.drplot
 
-phugoid = modesym(phugoid_data)
 
-phugoid_label = ["$\hat{u}$", r"$\alpha$", r"$\theta$", "qc/V"]
+search = modeasym(search_data)
+
+search_label = ["$deflection$", r"$\phi$", r"$\frac{pb}{2V}$", r"$\frac{rb}{2V}$"]
 
 
-ac = nm.ac(m = phugoid.m0, initial = phugoid.x0, hp0 = phugoid.h0, V0 = phugoid.V0)
-y = ac.sym_input_response(phugoid.t, phugoid.deplot, phugoid.x0)
+ac = nm.ac(m = search.m0, initial = search.x0, hp0 = search.h0, V0 = search.V0)
+y = ac.asym_input_response(search.t, search.input.T, search.x0)
 
 sns.set_theme()
 plt.figure(figsize=(11,9))
 f = 20
 
 plt.subplot(221)
-# plt.title("de")
-# plt.plot(phugoid.t, phugoid.deplot)
-plt.title(phugoid_label[0], fontsize=f)
-plt.plot(phugoid.t, y[0].T[0], label='numerical model')
-plt.plot(phugoid.t, phugoid.uplot, label='flight data')
-
+plt.title(search_label[0], fontsize=f)
+plt.plot(search.t, search.daplot, label='aileron')
+plt.plot(search.t, search.drplot, label='ruddor')
+plt.legend()
 plt.subplot(222)
-plt.title(phugoid_label[1], fontsize=f)
-plt.plot(phugoid.t, y[0].T[1], label='numerical model')
-plt.plot(phugoid.t, phugoid.aplot, label='flight data')
+plt.title(search_label[1], fontsize=f)
+plt.plot(search.t, y[0].T[1], label='numerical model')
+plt.plot(search.t, search.phiplot, label='flight data')
 
 plt.subplot(223)
-plt.title(phugoid_label[2], fontsize=f)
-plt.plot(phugoid.t, y[0].T[2], label='numerical model')
-plt.plot(phugoid.t, phugoid.thplot, label='flight data')
+plt.title(search_label[2], fontsize=f)
+plt.plot(search.t, y[0].T[2], label='numerical model')
+plt.plot(search.t, search.pplot, label='flight data')
 
 plt.subplot(224)
-plt.title(phugoid_label[3], fontsize=f)
-plt.plot(phugoid.t, y[0].T[3], label='numerical model')
-plt.plot(phugoid.t, phugoid.qplot, label='flight data')
+plt.title(search_label[3], fontsize=f)
+plt.plot(search.t, y[0].T[3], label='numerical model')
+plt.plot(search.t, search.rplot, label='flight data')
 plt.legend(loc='best')
 
-plt.figure()
-plt.xlabel('Time [s]', fontsize=f)
-plt.ylabel('Elevator deflection [rad]', fontsize=f)
-plt.plot(phugoid.t, phugoid.deplot)
-plt.show()
-# error = sum( abs( phugoid.uplot - y[0].T[0] ) )
+# plt.figure()
+# plt.xlabel('Time [s]', fontsize=f)
+# plt.ylabel('Elevator deflection [rad]', fontsize=f)
+# plt.plot(search.t, search.rplot)
+# plt.show()
+# error = sum( abs( search.uplot - y[0].T[0] ) )
 # print(ac.CLa)
 # print(error)
