@@ -3,7 +3,7 @@ import numpy as np
 import control.matlab as ml
 from Numerical_main import ac
 import matplotlib.pyplot as plt
-V = [75, 100, 125, 150, 175]
+'''V = [75, 100, 125, 150, 175]
 ac = ac(hp0=5000)
 errors = []
 for V0 in V:
@@ -161,4 +161,20 @@ for V0 in V:
     errors.append(edutch)
 
 print(errors)
-print(len(errors))
+#print(len(errors))
+#print(min(errors), max(errors))'''
+
+diffs = [28.9952597557432, 4.54933181675922, 34.154959393006976, 34.154959393006976, 5.32701300765764, 4.54933181675933, 12.206612524009307, 12.206612524009307, 18.3412337404280, 4.54933181675939, 9.741734344988364, 9.741734344988364, 42.0094804885135, 4.54933181675911, 31.690081213986048, 31.690081213986048, 65.6777272365992, 4.54933181675924, 53.6384280829837, 53.6384280829837]
+dx = 0.01
+
+newdiffs = []
+print(round(diffs[0]))
+for i in diffs:
+    dev = np.round(i, 2)
+    newdiffs.append(dev)
+
+print(newdiffs)
+
+
+plt.plot(np.arange(0, len(newdiffs), 1), newdiffs)
+plt.show()
