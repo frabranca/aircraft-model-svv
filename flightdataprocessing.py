@@ -95,6 +95,8 @@ def symplot(mode):
     aplot = a[(t >= start) & (t <= end)] - a[ind]
     thplot = theta[(t >= start) & (t <= end)] - theta[ind]
     qplot = q[(t >= start) & (t <= end)] * c/V0
+
+    # input
     deplot = de[(t >= start) & (t <= end)]
 
     x0 = np.array([m0, h0, V0, t0, u0, a0, th0, q0])
@@ -102,39 +104,43 @@ def symplot(mode):
 
 
 def asymplot(mode):
-    sns.set_theme()
     start = mode[0]
     end = mode[1]
 
     # time
-    tplot = t[(t >= start) & (t <= end)] # s
-    mplot = m[(t >= start) & (t <= end)] # kg
+    tplot = t[(t >= start) & (t <= end)] #s
+    # velocity
+    vt = tas[(t >= start) & (t <= end)] #m/s
 
     # initial conditions
     b = 15.911
     ind = np.where(t == tplot[0])[0]
-    m0 = mplot[ind] # kg
+    m0 = m[ind] # kg
     h0 = hp[ind] # m
-    V0 = tas[ind] # m/s
-    t0 = t[ind] # s
-    beta0 = 0.
-    phi0 = phi[ind]
-    p0 = p[ind]*b/V0/2
-    r0 = r[ind]*b/V0/2
+    V0 = tas[ind] #m/s
+    t0 = t[ind] #s
+    beta0 = 0. #(vt[0]-V0)/V0 # -
+    phi0 = np.array([0.0]) #rad
+    r0 = r[ind]*b/V0/2 #np.array([0.0]) #rad
+    p0 = p[ind]*b/V0/2 #rad
 
-    tplot = tplot
+    # state variables
+    phiplot = phi[(t >= start) & (t <= end)] - phi[ind]
+    rplot = r[(t >= start) & (t <= end)] #- r[ind]
+    pplot = p[(t >= start) & (t <= end)] #- p[ind]
 
-    phiplot = phi[(t >= start) & (t <= end)]
-    pplot = p[(t >= start) & (t <= end)] *b/V0/2
-    rplot = r[(t >= start) & (t <= end)] *b/V0/2
+    # inputs
     daplot = da[(t >= start) & (t <= end)]
     drplot = dr[(t >= start) & (t <= end)]
 
     x0 = np.array([m0, h0, V0, t0, beta0, phi0, p0, r0])
-    return x0, tplot, phiplot, pplot, rplot
+    return x0, tplot, phiplot, rplot, pplot, daplot, drplot
 
 short_data = symplot(short)
 phugoid_data = symplot(phugoid)
+dutch_data = asymplot(dutch)
+dutch_yawdamp_data = asymplot(dutch_yawdamp)
+aperiodic_data = asymplot(aperiodic)
 search_data = symplot(search)
 
 # dutch_data = asymplot(dutch)

@@ -298,7 +298,7 @@ class mode():
         self.h0 = self.cond[0][0]
         self.V0 = self.cond[1][0]
         self.t0 = self.cond[2][0]
-        self.u0 = self.cond[3][0]
+        self.u0 = self.cond[3]
         self.a0 = np.radians(self.cond[4][0])
         self.th0 = np.radians(self.cond[5][0])
         self.q0 = np.radians(self.cond[6][0])
@@ -309,7 +309,9 @@ phugoid = mode(phugoid_data)
 # ac = ac(m = phugoid.m0, initial = phugoid.x0, hp0 = phugoid.h0, V0 = phugoid.V0)
 #
 # t = np.linspace(0,10,len(phugoid.tplot))
-# y = ac.sym_input_response(t, phugoid.deplot, phugoid.x0)
+
+t = np.arange()
+y = ac.sym_input_response(t, phugoid.deplot, phugoid.x0)
 
 # plt.plot(short.tplot, short.thplot)
 # plt.plot(short.tplot, short.aplot)

@@ -30,15 +30,15 @@ class ac:
         self.rho0, self.Temp0, self.R = 1.2250, 288.15, 287.05          # air density, temperature at sea level [kg/m^3, K] + GAS CONSTANT
         self.g = 9.81
         self.W = m*self.g           # [N]       (aircraft weight)
-        self.m = self.W/self.g
+        self.m = m
         self.dt = 0.01
     # Aerodynamic properties
         self.e = 0.8            # Oswald factor [ ]
         self.CD0 = 0.04            # Zero lift drag coefficient [ ]
-        self.CLa = 5.084            # Slope of CL-alpha curve [ ]
+        self.CLa = 5.084 #6.7770             # Slope of CL-alpha curve [ ]
         # Longitudinal stability
-        self.Cma = -0.5626            # longitudinal stabilty [ ]
-        self.Cmde = -1.1642            # elevator effectiveness [ ]
+        self.Cma = -0.5626   #-0.29046636006796545          # longitudinal stabilty [ ]
+        self.Cmde = -1.1642 #-0.7626857630112688             # elevator effectiveness [ ]
 
         # Aircraft geometry
         self.S = 30.00	          # wing area [m^2]
@@ -227,6 +227,11 @@ class ac:
     def asym_response(self, x0):
         system = self.asym_system()
         self.y, self.t = ml.initial(system, self.t, x0)
+        return self.y
+
+    def asym_input_response(self, t, u, x0):
+        system = self.asym_system()
+        self.y = ml.lsim(system, u, t, x0)
         return self.y
 
     def asym_plot(self, x0):
