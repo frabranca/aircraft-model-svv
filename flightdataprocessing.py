@@ -1,13 +1,12 @@
 import pandas as pd
-import seaborn as sns
 import numpy as np
-import matplotlib.pyplot as plt
+import scipy.integrate as int
 
 fd = pd.read_csv('data.csv')
 t = fd['t'].values
 
 # SYMMETRIC STATE VARIABLES
-tas = fd['tas'].values * 0.514444      # True airspeed
+tas = fd['tas'].values * 0.514444       # True airspeed
 a = np.radians(fd['a'].values)          # angle of attack [rad]
 theta = np.radians(fd['theta'].values)  # pitch angle [rad]
 q = np.radians(fd['q'].values)          # pitch rate [rad/s]
@@ -68,9 +67,9 @@ def symplot(mode):
     end = mode[1]
 
     # time
-    tplot = t[(t >= start) & (t <= end)] #s
+    tplot = t[(t >= start) & (t <= end)] # s
     # velocity
-    vt = tas[(t >= start) & (t <= end)] #m/s
+    vt = tas[(t >= start) & (t <= end)] # m/s
 
     # initial conditions
     c = 2.0569
@@ -138,21 +137,3 @@ dutch_data = asymplot(dutch)
 dutch_yawdamp_data = asymplot(dutch_yawdamp)
 aperiodic_data = asymplot(aperiodic)
 spiral_data = asymplot(spiral)
-asymplot(spiral)
-
-if __name__ == "__main__":
-    x = np.linspace(0,10,1000)
-    y = np.sin(x)
-    xav, yav = approx(x,y)
-    print(np.size(y), np.size(yav))
-    plt.plot(xav,yav)
-    plt.show()
-    from scipy import integrate
-    def f(x): return x*x
-    x = np.arange(0.,1.,0.01)
-
-    def beta(x, f):
-        b = []
-        for i in x:
-            b.append(integrate.quad(f, 0., i)[0])
-        return b

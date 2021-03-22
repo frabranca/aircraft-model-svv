@@ -46,11 +46,9 @@ class modeasym():
         self.input[0,:] = self.daplot
         self.input[1,:] = self.drplot
 
-
 search = modeasym(search_data)
 
 search_label = ["$deflection$", r"$\phi$", r"$\frac{pb}{2V}$", r"$\frac{rb}{2V}$"]
-
 
 ac = nm.ac(m = search.m0, initial = search.x0, hp0 = search.h0, V0 = search.V0)
 y = ac.asym_input_response(search.t, search.input.T, search.x0)
@@ -61,9 +59,10 @@ f = 20
 
 plt.subplot(221)
 plt.title(search_label[0], fontsize=f)
-plt.plot(search.t, search.daplot, label='aileron')
-plt.plot(search.t, search.drplot, label='ruddor')
+plt.plot(search.t, search.daplot, c="r", label='aileron')
+plt.plot(search.t, search.drplot, c ="k", label='ruddor')
 plt.legend()
+
 plt.subplot(222)
 plt.title(search_label[1], fontsize=f)
 plt.plot(search.t, y[0].T[1], label='numerical model')
@@ -79,12 +78,3 @@ plt.title(search_label[3], fontsize=f)
 plt.plot(search.t, y[0].T[3], label='numerical model')
 plt.plot(search.t, search.rplot, label='flight data')
 plt.legend(loc='best')
-
-# plt.figure()
-# plt.xlabel('Time [s]', fontsize=f)
-# plt.ylabel('Elevator deflection [rad]', fontsize=f)
-# plt.plot(search.t, search.rplot)
-# plt.show()
-# error = sum( abs( search.uplot - y[0].T[0] ) )
-# print(ac.CLa)
-# print(error)
