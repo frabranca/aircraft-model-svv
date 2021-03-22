@@ -302,7 +302,7 @@ class mode():
         self.a0 = np.radians(self.cond[4][0])
         self.th0 = np.radians(self.cond[5][0])
         self.q0 = np.radians(self.cond[6][0])
-        self.x0 = np.array([self.u0, self.a0, self.th0, self.q0])
+        self.x0 = np.array('dtype=object', [self.u0, self.a0, self.th0, self.q0])
 
 # short = mode(short_data)
 phugoid = mode(phugoid_data)

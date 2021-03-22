@@ -133,7 +133,7 @@ def asymplot(mode):
     daplot = da[(t >= start) & (t <= end)]
     drplot = dr[(t >= start) & (t <= end)]
 
-    x0 = np.array([m0, h0, V0, t0, beta0, phi0, p0, r0])
+    x0 = np.array('dtype=object', [m0, h0, V0, t0, beta0, phi0, p0, r0])
     return x0, tplot, phiplot, rplot, pplot, daplot, drplot
 
 short_data = symplot(short)
