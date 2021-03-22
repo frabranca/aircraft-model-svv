@@ -8,7 +8,7 @@ import seaborn as sns
 kts = 0.514444
 
 #velocities
-V = np.array([250, 218, 191]) * kts
+V = np.array(np.arange(100,200,25)) * kts
 
 # plot labels
 sym_x = ['u', r'$\alpha$', r'$\theta$', r'$\frac{qc}{V}$']
@@ -17,7 +17,7 @@ color = ['r', 'b', 'c', 'k']
 
 
 class ac:
-    def __init__(self, m=5579.791, initial=np.array([0.,0.,0.,0.]), hp0=5000, V0=100):
+    def __init__(self, m=5579.791, initial=np.array([0.,0.,0.,0.]), hp0=5000, V0=V[0]):
 
         self.hp0 = hp0      	      # pressure altitude in the stationary flight condition [m]
         self.V0 = V0           # true airspeed in the stationary flight condition [m/sec]
