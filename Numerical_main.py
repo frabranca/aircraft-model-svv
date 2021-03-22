@@ -51,7 +51,7 @@ class ac:
         self.bh = 5.791	          # stabiliser span [m]
         self.A = self.b ** 2 / self.S      # wing aspect ratio [ ]
         self.Ah = self.bh ** 2 / self.Sh    # stabiliser aspect ratio [ ]
-        self.Vh_V = 1	          # [ ]
+        #self.Vh_V = 1	          # [ ]
         self.ih = -2 * pi / 180   # stabiliser angle of incidence [rad]
 
         self.lam = -0.0065         # temperature gradient in ISA [K/m]
@@ -186,10 +186,10 @@ class ac:
         plt.legend(prop={'size': l})
         plt.xticks(fontsize=t)
         plt.yticks(fontsize=t)
-
         plt.show()
 
-    def sym_eig(self): return ml.damp(self.sym_system())
+    def sym_eig(self):
+        return ml.damp(self.sym_system())
 
     # ASYMMETRIC
     def asym_system(self):
@@ -261,7 +261,7 @@ class ac:
         plt.plot(self.t, y[:,3], color[3], label=sym_x[3])
         plt.grid()
         plt.legend()
-
         plt.show()
 
-    def asym_eig(self): return ml.damp(self.asym_system())
+    def asym_eig(self):
+        return ml.damp(self.asym_system())
