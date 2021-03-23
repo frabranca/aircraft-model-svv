@@ -1,11 +1,11 @@
 from math import *
 import numpy as np
-from numpy.linalg import *
 import control.matlab as ml
 import matplotlib.pyplot as plt
 import seaborn as sns
 # unit conversion
 kts = 0.514444
+
 
 #velocities
 V = np.array([250, 218, 191]) * kts
@@ -146,9 +146,14 @@ class ac:
 
         return self.sys
 
-    def sym_response(self, x0):
+    def sym_response(self, x0, t):
         system = self.sym_system()
-        self.y, self.t = ml.impulse(system, self.t, x0)
+        self.y, self.t = ml.step(system, t, x0)
+        return self.y
+
+    def sym_impresponse(self, x0, t):
+        system = self.sym_system()
+        self.y, self.t = ml.impulse(system, t, x0)
         return self.y
 
     def sym_input_response(self, t, u, x0):
@@ -237,6 +242,11 @@ class ac:
         self.y, self.t = ml.initial(system, self.t, x0)
         return self.y
 
+    def asym_input_response(self, t, u, x0):
+        system = self.asym_system()
+        self.y = ml.lsim(system, u, t, x0)
+        return self.y
+
     def asym_plot(self, x0):
         y = self.asym_response(x0)
         plt.figure()
@@ -270,59 +280,150 @@ class ac:
     def asym_eig(self): return ml.damp(self.asym_system())
 
 
-# if __name__ == "__main__":
-#     v = 100
-#     x0 = np.array([0.,0.,0.,0.])
-#     ac = ac(initial=x0, V0=v)
-#     input = np.zeros((1, len(ac.t)))[0]
-#     input[0:9] = -0.005
-#     y = ac.sym_input_response(ac.t, input, x0)
-#     print(y)
-#     s = ac.sym_system()
-#     # u0 = (v-ac.V0)/ac.V0
-#     # x0 = np.array([u0, ac.alpha0, ac.th0, 0.])
-#     # ac.sym_eig()
-#     # # x0 = np.array([0.,radians(15),0.,0.])
-#     # # # ac.sym_eig(V[0])
-#     # input = np.zeros((1, len(ac.t)))[0]
-#     # input[0:9] = -0.005
-#     # plt.plot(ac.t, input)
-#     # ac.sym_plot(v, input, x0)
-#     # plt.grid()
+if __name__ == "__main__":
+    v = 100
+    c = 2.0569
+    b = 15.911
+    x0 = np.zeros(4)
+    ac1 = ac(initial=x0, V0=v)
+    t = np.linspace(0,60,500)
+    dt = t[1]-t[0]
+    u1 = np.zeros(np.size(t))
+    step = np.zeros(np.size(t))
+    impulse = np.zeros(np.size(t))
+    step[100:] = np.radians(t[100])*0.025
+    impulse[100] = np.radians(t[100])*0.025
+    u = np.zeros(np.size(t))
+    u[100:] = np.radians(t[100:])*0.025-np.radians(t[100])*0.025
+    uramp = np.zeros((2, np.size(t)))
+    uimpulse = np.zeros((2, np.size(t)))
+    ustep = np.zeros((2, np.size(t)))
 
-from flightdataprocessing import short_data, phugoid_data
+    ustep[0,:] = step
+    ustep[1,:] = u1
+    uimpulse[0,:] = impulse
+    uimpulse[1,:] = u1
+    uramp[0,:] = u
+    uramp[1,:] = u1
+    yramp = ac1.asym_input_response(t, uramp.T, x0)[0]
+    ystep = ac1.asym_input_response(t, ustep.T, x0)[0]
+    yimpulse = ac1.asym_input_response(t, uimpulse.T, x0)[0]
+    sns.set_theme()
+    plt.figure(figsize=(11, 9))
+    f = 11
+    phi = np.zeros(3)
+    phi[0] = yimpulse.T[1][-1]
+    phi[1] = ystep.T[1][-1]
+    phi[2] = yramp.T[1][-1]
+    phiint = np.zeros((3,np.size(t)))
+    phiint[0,:] = yimpulse.T[2]
+    phiint[1,:] = ystep.T[2]
+    phiint[2,:] = yramp.T[2]
+    phiint = np.sum(2*phiint*dt*v/b,axis=1)
+    print(phi, phiint, (phi-phiint)**2)
+    plt.subplot(221)
+    plt.title("Sideslip angle response", fontsize=f)
+    plt.ylabel(r"$\Delta\beta$ [rad]")
+    plt.plot(t, yimpulse.T[0],  label='impulse response')
+    plt.plot(t, ystep.T[0],  label='step response')
+    plt.plot(t, yramp.T[0],  label='ramp response')
 
-class mode():
-    def __init__(self, data):
-        self.cond, self.tplot, self.uplot, self.aplot, self.thplot, self.qplot, self.deplot = data
-        self.h0 = self.cond[0][0]
-        self.V0 = self.cond[1][0]
-        self.t0 = self.cond[2][0]
-        self.u0 = self.cond[3]
-        self.a0 = np.radians(self.cond[4][0])
-        self.th0 = np.radians(self.cond[5][0])
-        self.q0 = np.radians(self.cond[6][0])
-        self.x0 = np.array('dtype=object', [self.u0, self.a0, self.th0, self.q0])
 
-# short = mode(short_data)
-phugoid = mode(phugoid_data)
-# ac = ac(m = phugoid.m0, initial = phugoid.x0, hp0 = phugoid.h0, V0 = phugoid.V0)
-#
-# t = np.linspace(0,10,len(phugoid.tplot))
+    plt.subplot(222)
+    plt.title("Roll angle response", fontsize=f)
+    plt.ylabel(r"$\Delta\phi$ [rad]")
+    plt.plot(t, yimpulse.T[1],  label='impulse response')
+    plt.plot(t, ystep.T[1],  label='step response')
+    plt.plot(t, yramp.T[1],  label='ramp response')
 
-t = np.arange()
-y = ac.sym_input_response(t, phugoid.deplot, phugoid.x0)
+    plt.subplot(223)
+    plt.title("Roll rate response", fontsize=f)
+    plt.ylabel(r"$p$ [rad]")
+    plt.xlabel("time [s]")
+    plt.plot(t, yimpulse.T[2],  label='impulse response')
+    plt.plot(t, ystep.T[2],  label='step response')
+    plt.plot(t, yramp.T[2],  label='ramp response')
 
-# plt.plot(short.tplot, short.thplot)
-# plt.plot(short.tplot, short.aplot)
-# plt.plot(phugoid.tplot, phugoid.uplot)
+    plt.subplot(224)
+    plt.title("Yaw rate response", fontsize=f)
+    plt.ylabel(r"r [rad]")
+    plt.xlabel("time [s]")
+    plt.plot(t, yimpulse.T[3],  label='impulse response')
+    plt.plot(t, ystep.T[3],  label='step response')
+    plt.plot(t, yramp.T[3],  label='ramp response')
+    plt.legend(loc="best")
+    plt.show()
 
-# plt.plot(phugoid.tplot, y[0][:,0], label='u')
-# plt.plot(short.tplot, y[0][:,1], label='alpha')
-# plt.plot(short.tplot, y[0][:,2], label='theta')
-# plt.plot(short.tplot, y[0][:,3], label='qc/V')
-plt.legend()
+    t = np.linspace(0,200,500)
+    ac = ac(initial=x0, V0=v)
+    u1 = np.zeros(np.size(t))
+    step = np.zeros(np.size(t))
+    impulse = np.zeros(np.size(t))
+    step[100:] = np.radians(t[100])*0.025
+    impulse[100] = np.radians(t[100])*0.025
+    u = np.zeros(np.size(t))
+    u[100:] = np.radians(t[100:])*0.025-np.radians(t[100])*0.025
+    yramp = ac.sym_input_response(t, u.T, x0)[0]
+    ystep = ac.sym_input_response(t, step.T, x0)[0]
+    yimpulse = ac.sym_input_response(t, impulse.T, x0)[0]
 
-plt.plot(phugoid.tplot, phugoid.deplot)
+    phi = np.zeros(3)
+    phi[0] = yimpulse.T[2][-1]
+    phi[1] = ystep.T[2][-1]
+    phi[2] = yramp.T[2][-1]
+    phiint = np.zeros((3,np.size(t)))
+    phiint[0,:] = yimpulse.T[3]
+    phiint[1,:] = ystep.T[3]
+    phiint[2,:] = yramp.T[3]
+    phiint = np.sum(phiint*dt*v/c,axis=1)
+    print(phi, phiint, (phi-phiint)**2)
 
-plt.show()
+
+    plt.subplot(221)
+    plt.title("Unitless velocity response", fontsize=f)
+    plt.ylabel(r"$\hat{u}$ [-]")
+    plt.plot(t, yimpulse.T[0],  label='impulse response')
+    plt.plot(t, ystep.T[0],  label='step response')
+    plt.plot(t, yramp.T[0],  label='ramp response')
+
+
+    plt.subplot(222)
+    plt.title("Angle of attack response", fontsize=f)
+    plt.ylabel(r"$\Delta\alpha$ [rad]")
+    plt.plot(t, yimpulse.T[1],  label='impulse response')
+    plt.plot(t, ystep.T[1],  label='step response')
+    plt.plot(t, yramp.T[1],  label='ramp response')
+
+    plt.subplot(223)
+    plt.title("Flight angle response", fontsize=f)
+    plt.ylabel(r"$\Delta\theta$ [rad]")
+    plt.xlabel("time [s]")
+    plt.plot(t, yimpulse.T[2],  label='impulse response')
+    plt.plot(t, ystep.T[2],  label='step response')
+    plt.plot(t, yramp.T[2],  label='ramp response')
+
+    plt.subplot(224)
+    plt.title("Pitch rate response", fontsize=f)
+    plt.ylabel(r"q [rad]")
+    plt.xlabel("time [s]")
+    plt.plot(t, yimpulse.T[3],  label='impulse response')
+    plt.plot(t, ystep.T[3],  label='step response')
+    plt.plot(t, yramp.T[3],  label='ramp response')
+    plt.legend(loc="best")
+    plt.show()
+
+    plt.subplot(131)
+    plt.ylabel(r"deflection [rad]")
+    plt.xlabel("time [s]")
+    plt.plot(t, impulse, c="r", label="impulse function")
+
+    plt.subplot(132)
+    plt.ylabel(r"deflection [rad]")
+    plt.xlabel("time [s]")
+    plt.plot(t, step, c = "r", label="step function")
+
+    plt.subplot(133)
+    plt.ylabel(r"deflection [rad]")
+    plt.xlabel("time [s]")
+    plt.plot(t, u, c = "r", label="ramp function")
+    plt.show()
