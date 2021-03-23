@@ -3,7 +3,7 @@ import numpy as np
 import control.matlab as ml
 from Numerical_main import ac
 import matplotlib.pyplot as plt
-'''V = [75, 100, 125, 150, 175]
+V = [95, 100, 105, 110, 115]
 ac = ac(hp0=5000)
 errors = []
 for V0 in V:
@@ -144,14 +144,14 @@ for V0 in V:
     # APERIODIC ROLL
     ap_eig = Clp / (4*mub*KX2) *V0/b
     eap = abs(np.abs(ap_eig) - np.abs(asym_eig[0]))/ np.abs(asym_eig[0])*100
+    errors.append(eap)
 
     # SPIRAL
     n = 2*CL*(Clb*Cnr - Cnb*Clr)
     d = Clp*(CYb*Cnr + 4*mub*Cnb) - Cnp*(CYb*Clr + 4*mub*Clb)
     sp_eig = n/d*V0/b
     espiral = abs(np.abs(ap_eig) - np.abs(asym_eig[0]))/ np.abs(asym_eig[0])*100
-    errors.append(espiral
-                  )
+    errors.append(espiral)
     # DUTCH ROLL + APERIODIC ROLL
     dutch = Matrix([[-Clb + .5*Clr*x + 2*mub*KXZ*x**2, Clp - 4*mub*KX2*x],
                     [-Cnb + .5*Cnr*x - 2*mub*KZ2*x**2, Cnp + 4*mub*KXZ*x]])
@@ -161,11 +161,17 @@ for V0 in V:
     errors.append(edutch)
 
 print(errors)
+print(len(errors))
+print(sum(errors)/len(errors))
 #print(len(errors))
-#print(min(errors), max(errors))'''
+#print(min(errors), max(errors))
 
-diffs = [28.9952597557432, 4.54933181675922, 34.154959393006976, 34.154959393006976, 5.32701300765764, 4.54933181675933, 12.206612524009307, 12.206612524009307, 18.3412337404280, 4.54933181675939, 9.741734344988364, 9.741734344988364, 42.0094804885135, 4.54933181675911, 31.690081213986048, 31.690081213986048, 65.6777272365992, 4.54933181675924, 53.6384280829837, 53.6384280829837]
+'''diffs = [28.9952597557432, 4.54933181675922, 34.154959393006976, 34.154959393006976, 5.32701300765764, 4.54933181675933, 12.206612524009307, 12.206612524009307, 18.3412337404280, 4.54933181675939, 9.741734344988364, 9.741734344988364, 42.0094804885135, 4.54933181675911, 31.690081213986048, 31.690081213986048, 65.6777272365992, 4.54933181675924, 53.6384280829837, 53.6384280829837]
 dx = 0.01
+
+print((sum(diffs)/len(diffs)))
+
+
 
 newdiffs = []
 print(round(diffs[0]))
@@ -177,4 +183,4 @@ print(newdiffs)
 
 
 plt.plot(np.arange(0, len(newdiffs), 1), newdiffs)
-plt.show()
+plt.show()'''
