@@ -32,6 +32,7 @@ class ac:
         self.g = 9.81
         self.W = m*self.g           # [N]       (aircraft weight)
         self.m = m
+        self.t = 200
         self.dt = 0.01
     # Aerodynamic properties
         self.e = 0.8            # Oswald factor [ ]
@@ -267,3 +268,4 @@ class ac:
     def asym_eig(self):
         return ml.damp(self.asym_system())
 
+ac.sym_plot()
