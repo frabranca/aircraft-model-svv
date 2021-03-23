@@ -3,6 +3,7 @@ from flightdataprocessing import approx, spiral_data
 import Numerical_main as nm
 from matplotlib import pyplot as plt
 import seaborn as sns
+from scipy.optimize import curve_fit as cv
 
 """
 Validation code for ASYMMETRIC MOTIONS:
@@ -10,6 +11,9 @@ In order to navigate between motions use control+f command to select all instanc
 of the current motion then change them to a motion of interest. For the nomenclature 
 of the motions see bottom of the file "flightdataprocessing. 
 """
+
+def exponent(x,A,l,C):
+    return A*np.exp(l/100*x) + C
 
 class modeasym():
     def __init__(self, data):
@@ -40,35 +44,51 @@ spiral_label = ["$Rudder & aileron deflection$", r"$roll angle response$", r"$ro
 
 ac = nm.ac(m = spiral.m0, initial = spiral.x0, hp0 = spiral.h0, V0 = spiral.V0)
 y = ac.asym_input_response(spiral.t, spiral.input.T, spiral.x0)
+Af, lf, Cf = cv(exponent, spiral.t, spiral.phiplot)[0]
+An, ln, Cn = cv(exponent, spiral.t, y[0].T[1])[0]
+
 
 sns.set_theme()
 plt.figure(figsize=(11,9))
 f = 11
 
-plt.subplot(221)
-plt.title("Rudder & aileron deflection", fontsize=f)
-plt.ylabel("delfection [rad]")
-plt.plot(spiral.t, spiral.drplot, c ="k", label='rudder')
-plt.plot(spiral.t, spiral.daplot, c="r", label='aileron')
-plt.legend()
-
-plt.subplot(222)
-plt.title("Roll angle response", fontsize=f)
-plt.ylabel("$\phi$ [rad]")
-plt.plot(spiral.t, spiral.phiplot, label='flight data')
-plt.plot(spiral.t, y[0].T[1], label='numerical model')
-
-plt.subplot(223)
-plt.title("Role rate response", fontsize=f)
-plt.ylabel(r"roll rate [rad]")
-plt.xlabel("time [s]")
-plt.plot(spiral.t, spiral.pplot, label='flight data')
-plt.plot(spiral.t, y[0].T[2], label='numerical model')
-
-plt.subplot(224)
 plt.title("Yaw rate response", fontsize=f)
 plt.ylabel(r"yaw rate [rad]")
 plt.xlabel("time [s]")
-plt.plot(spiral.t, spiral.rplot, label='flight data')
-plt.plot(spiral.t, y[0].T[3], label='numerical model')
-plt.legend(loc='best')
+plt.plot(spiral.t, spiral.phiplot, label='flight data')
+plt.plot(spiral.t, exponent(spiral.t, Af, lf, Cf), label="fit on flight data")
+plt.plot(spiral.t, exponent(spiral.t, An, ln, Cn), label="fit on numerical simulation")
+plt.plot(spiral.t, y[0].T[1], label='numerical model')
+plt.legend()
+plt.show()
+
+print("flight real eigenvalue", lf/100)
+print("numerical real eigenvalue", ln/100)
+# plt.subplot(221)
+# plt.title("Rudder & aileron deflection", fontsize=f)
+# plt.ylabel("delfection [rad]")
+# plt.plot(spiral.t, spiral.drplot, c ="k", label='rudder')
+# plt.plot(spiral.t, spiral.daplot, c="r", label='aileron')
+# plt.legend()
+#
+# plt.subplot(222)
+# plt.title("Roll angle response", fontsize=f)
+# plt.ylabel("$\phi$ [rad]")
+# plt.plot(spiral.t, spiral.phiplot, label='flight data')
+# plt.plot(spiral.t, y[0].T[1], label='numerical model')
+#
+# plt.subplot(223)
+# plt.title("Role rate response", fontsize=f)
+# plt.ylabel(r"roll rate [rad]")
+# plt.xlabel("time [s]")
+# plt.plot(spiral.t, spiral.pplot, label='flight data')
+# plt.plot(spiral.t, y[0].T[2], label='numerical model')
+#
+# plt.subplot(224)
+# plt.title("Yaw rate response", fontsize=f)
+# plt.ylabel(r"yaw rate [rad]")
+# plt.xlabel("time [s]")
+# plt.plot(spiral.t, spiral.rplot, label='flight data')
+# plt.plot(spiral.t, y[0].T[3], label='numerical model')
+# plt.legend(loc='best')
+# plt.show()
