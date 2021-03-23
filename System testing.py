@@ -3,148 +3,184 @@ import numpy as np
 import control.matlab as ml
 from Numerical_main import ac
 import matplotlib.pyplot as plt
+V = [95, 100, 105, 110, 115]
 ac = ac(hp0=5000)
-kts = 0.514444
-hp0 = 5000      	      # pressure altitude in the stationary flight condition [m]
-V0 = 100            # true airspeed in the stationary flight condition [m/sec]
-alpha0 = radians(5)            # angle of attack in the stationary flight condition [rad]
-th0 = radians(4)            # pitch angle in the stationary flight condition [rad]
-rho0, Temp0, R = 1.2250, 288.15, 287.05          # air density, temperature at sea level [kg/m^3, K] + GAS CONSTANT
-g = 9.81
-W = 60500           # [N]       (aircraft weight)
-m = W/g
-dt = 0.01
-t = np.arange(0., 20.+dt, dt)
-# Aerodynamic properties
-e = 0.8            # Oswald factor [ ]
-CD0 = 0.04            # Zero lift drag coefficient [ ]
-CLa = 5.084            # Slope of CL-alpha curve [ ]
-# Longitudinal stability
-Cma = -0.5626            # longitudinal stabilty [ ]
-Cmde = -1.1642            # elevator effectiveness [ ]
+errors = []
+for V0 in V:
 
-# Aircraft geometry
-S = 30.	          # wing area [m^2]
-Sh = 0.2 * S         # stabiliser area [m^2]
-Sh_S = Sh / S	          # [ ]
-lh = 0.71 * 5.968    # tail length [m]
-c = 2.0569	          # mean aerodynamic cord [m]
-lh_c = lh / c	          # [ ]
-b = 15.911	          # wing span [m]
-bh = 5.791	          # stabiliser span [m]
-A = b ** 2 / S      # wing aspect ratio [ ]
-Ah = bh ** 2 / Sh    # stabiliser aspect ratio [ ]
-Vh_V = 1	          # [ ]
-ih = -2 * pi / 180   # stabiliser angle of incidence [rad]
+    kts = 0.514444
+    hp0 = 5000      	      # pressure altitude in the stationary flight condition [m]
+    #V0 = 200            # true airspeed in the stationary flight condition [m/sec] #make this a list
+    alpha0 = radians(5)            # angle of attack in the stationary flight condition [rad]
+    th0 = radians(4)            # pitch angle in the stationary flight condition [rad]
+    rho0, Temp0, R = 1.2250, 288.15, 287.05          # air density, temperature at sea level [kg/m^3, K] + GAS CONSTANT
+    g = 9.81
+    W = 60500           # [N]       (aircraft weight)
+    m = W/g
+    dt = 0.01
+    t = np.arange(0., 20.+dt, dt)
+    # Aerodynamic properties
+    e = 0.8            # Oswald factor [ ]
+    CD0 = 0.04            # Zero lift drag coefficient [ ]
+    CLa = 5.084            # Slope of CL-alpha curve [ ]
+    # Longitudinal stability
+    Cma = -0.5626            # longitudinal stabilty [ ]
+    Cmde = -1.1642            # elevator effectiveness [ ]
 
-lam = -0.0065         # temperature gradient in ISA [K/m]
-rho = rho0 * pow( ((1+(lam * hp0 / Temp0))), (-((g / (lam * R)) + 1)))
+    # Aircraft geometry
+    S = 30.	          # wing area [m^2]
+    Sh = 0.2 * S         # stabiliser area [m^2]
+    Sh_S = Sh / S	          # [ ]
+    lh = 0.71 * 5.968    # tail length [m]
+    c = 2.0569	          # mean aerodynamic cord [m]
+    lh_c = lh / c	          # [ ]
+    b = 15.911	          # wing span [m]
+    bh = 5.791	          # stabiliser span [m]
+    A = b ** 2 / S      # wing aspect ratio [ ]
+    Ah = bh ** 2 / Sh    # stabiliser aspect ratio [ ]
+    Vh_V = 1	          # [ ]
+    ih = -2 * pi / 180   # stabiliser angle of incidence [rad]
 
-# muc = m / (rho * S * c)
-muc = m / (rho * S * c)
-mub = m / (rho * S * b)
+    lam = -0.0065         # temperature gradient in ISA [K/m]
+    rho = rho0 * pow( ((1+(lam * hp0 / Temp0))), (-((g / (lam * R)) + 1)))
 
-KX2, KZ2, KXZ, KY2 = 0.019, 0.042, 0.002, 1.25 * 1.114
+    # muc = m / (rho * S * c)
+    muc = m / (rho * S * c)
+    mub = m / (rho * S * b)
 
-# Aerodynamic constants
+    KX2, KZ2, KXZ, KY2 = 0.019, 0.042, 0.002, 1.25 * 1.114
 
-Cmac = 0                      # Moment coefficient about the aerodynamic centre [ ]
-CNwa = CLa                    # Wing normal force slope [ ]
-CNha = 2 * pi * Ah / (Ah + 2) # Stabiliser normal force slope [ ]
-depsda = 4 / (A + 2)            # Downwash gradient [ ]
+    # Aerodynamic constants
 
-# Lift and drag coefficient
+    Cmac = 0                      # Moment coefficient about the aerodynamic centre [ ]
+    CNwa = CLa                    # Wing normal force slope [ ]
+    CNha = 2 * pi * Ah / (Ah + 2) # Stabiliser normal force slope [ ]
+    depsda = 4 / (A + 2)            # Downwash gradient [ ]
 
-CL = 2 * W / (rho * V0 ** 2 * S)              # Lift coefficient [ ]
-CD = CD0 + (CLa * alpha0) ** 2 / (pi * A * e) # Drag coefficient [ ]
+    # Lift and drag coefficient
 
-# Stability derivatives
+    CL = 2 * W / (rho * V0 ** 2 * S)              # Lift coefficient [ ]
+    CD = CD0 + (CLa * alpha0) ** 2 / (pi * A * e) # Drag coefficient [ ]
 
-CX0 = W * sin(th0) / (0.5 * rho * V0 ** 2 * S)
-CXu,CXa,CXadot,CXq,CXde = -0.0279, +0.47966, +0.08330, -0.28170, -0.03728
+    # Stability derivatives
 
-CZ0 = -W * cos(th0) / (0.5 * rho * V0 ** 2 * S)
-CZu, CZa, CZadot, CZq, CZde = -0.37616, -5.74340, -0.00350, -5.66290, -0.69612
+    CX0 = W * sin(th0) / (0.5 * rho * V0 ** 2 * S)
+    CXu,CXa,CXadot,CXq,CXde = -0.0279, +0.47966, +0.08330, -0.28170, -0.03728
 
-Cmu, Cmadot, Cmq = +0.06990, +0.17800, -8.79415
+    CZ0 = -W * cos(th0) / (0.5 * rho * V0 ** 2 * S)
+    CZu, CZa, CZadot, CZq, CZde = -0.37616, -5.74340, -0.00350, -5.66290, -0.69612
 
-CYb = -0.7500
-CYbdot =  0
-CYp = -0.0304
-CYr = +0.8495
-CYda = -0.0400
-CYdr = +0.2300
+    Cmu, Cmadot, Cmq = +0.06990, +0.17800, -8.79415
 
-Clb = -0.10260
-Clp = -0.71085
-Clr = +0.23760
-Clda = -0.23088
-Cldr = +0.03440
+    CYb = -0.7500
+    CYbdot =  0
+    CYp = -0.0304
+    CYr = +0.8495
+    CYda = -0.0400
+    CYdr = +0.2300
 
-Cnb =  +0.1348
-Cnbdot = 0
-Cnp = -0.0602
-Cnr = -0.2061
-Cnda = -0.0120
-Cndr = -0.0939
+    Clb = -0.10260
+    Clp = -0.71085
+    Clr = +0.23760
+    Clda = -0.23088
+    Cldr = +0.03440
 
-# NUMERICAL MODEL----------------------------------------------
-sym = ac.sym_system(V0)
-symfunc = ml.damp(sym, doprint=False)
-sym_freq = symfunc[0]
-sym_damp = symfunc[1]
-sym_eig = symfunc[2]
-print(sym_eig)
-    # manoeuvres
-short_num = sym_eig[0:2] # SHORT PERIOD
-phug_num = sym_eig[2:4] # PHUGOID
+    Cnb =  +0.1348
+    Cnbdot = 0
+    Cnp = -0.0602
+    Cnr = -0.2061
+    Cnda = -0.0120
+    Cndr = -0.0939
 
-asym = ac.asym_system(V0)
-asymfunc = ml.damp(asym, doprint=False)
-asym_freq = asymfunc[0]
-asym_damp = asymfunc[1]
-asym_eig = asymfunc[2]
+    # NUMERICAL MODEL----------------------------------------------
+    sym = ac.sym_system()
+    symfunc = ml.damp(sym, doprint=False)
+    sym_freq = symfunc[0]
+    sym_damp = symfunc[1]
+    sym_eig = symfunc[2]
+    #print(sym_eig)
+        # manoeuvres
+    short_num = sym_eig[0:2] # SHORT PERIOD
+    phug_num = sym_eig[2:4] # PHUGOID
 
-#ANALYTICAL MODEL-----------------------------------------------
-from sympy import *
-x = symbols('x')
-# SHORT PERIOD CZadot = 0, CZq = 0
-short = Matrix([[CZa - 2*muc*x, 2*muc],
-                [Cma + Cmadot*x, Cmq - 2*muc*KY2*x]])
-short = short.det()
-short_eig = np.array(solve(short,x))*V0/c
-eshort = abs(np.abs(short_eig[0]) - np.abs(sym_eig[0])) / np.abs(short_eig[0])*100
+    asym = ac.asym_system()
+    asymfunc = ml.damp(asym, doprint=False)
+    asym_freq = asymfunc[0]
+    asym_damp = asymfunc[1]
+    asym_eig = asymfunc[2]
+    #print(asym_eig)
 
-# PHUGOID
-phug = Matrix([[CXu - 2*muc*x, CXa, CZ0, CXq],
-               [CZu, CZa, 0, 2*muc],
-               [0, 0, -x, 1],
-               [Cmu, Cma, 0, Cmq]])
-# phug = Matrix([[CXu - 2*muc*x, CXa, CZ0, CXq],
-#                [CZu, CZa, 0, 2*muc],
-#                [0, 0, -x, 1],
-#                [Cmu, Cma, 0, Cmq]])
-phug = phug.det()
-phug_eig = np.array(solve(phug, x)) * V0 / c
-ephug = abs(np.abs(phug_eig[0]) - np.abs(sym_eig[0])) # / np.abs(phug_eig[0])*100
-print(phug_eig)
+    #ANALYTICAL MODEL-----------------------------------------------
+    from sympy import *
+    x = symbols('x')
+    # SHORT PERIOD CZadot = 0, CZq = 0
+    short = Matrix([[CZa - 2*muc*x, 2*muc],
+                    [Cma + Cmadot*x, Cmq - 2*muc*KY2*x]])
+    short = short.det()
+    short_eig = np.array(solve(short,x))*V0/c
+    eshort = abs(np.abs(short_eig[0]) - np.abs(sym_eig[0])) /np.abs(sym_eig[0]) *100
+    errors.append(eshort)
 
-# a = -4*muc**2
-# b = 2*muc*CXu
-# c = -CZu*CZ0
-# peig = np.roots([a,b,c])*V0/c
+    # PHUGOID
+    phug = Matrix([[CXu - 2*muc*x, CXa, CZ0, CXq],
+                   [CZu, CZa, 0, 2*muc],
+                   [0, 0, -x, 1],
+                   [Cmu, Cma, 0, Cmq]])
+    # phug = Matrix([[CXu - 2*muc*x, CXa, CZ0, CXq],
+    #                [CZu, CZa, 0, 2*muc],
+    #                [0, 0, -x, 1],
+    #                [Cmu, Cma, 0, Cmq]])
+    phug = phug.det()
+    phug_eig = np.array(solve(phug, x)) * V0 / c      # an array for the positive and negative
+    #print("phugoid")
+    ephug = abs(np.abs(phug_eig[0]) - np.abs(sym_eig[2])) / (np.abs(sym_eig[2])) *100
+    errors.append(ephug)
 
-# APERIODIC ROLL
-ap_eig = Clp / (4*mub*KX2) *V0/b
-eap = abs(np.abs(ap_eig) - np.abs(asym_eig[0]))/ np.abs(ap_eig)*100
+    # a = -4*muc**2
+    # b = 2*muc*CXu
+    # c = -CZu*CZ0
+    # peig = np.roots([a,b,c])*V0/c
 
-# SPIRAL
-n = 2*CL*(Clb*Cnr - Cnb*Clr)
-d = Clp*(CYb*Cnr + 4*mub*Cnb) - Cnp*(CYb*Clr + 4*mub*Clb)
-sp_eig = n/d*V0/b
+    # APERIODIC ROLL
+    ap_eig = Clp / (4*mub*KX2) *V0/b
+    eap = abs(np.abs(ap_eig) - np.abs(asym_eig[0]))/ np.abs(asym_eig[0])*100
+    errors.append(eap)
 
-# DUTCH ROLL + APERIODIC ROLL
-dutch = Matrix([[-Clb + .5*Clr*x + 2*mub*KXZ*x**2, Clp - 4*mub*KX2*x],
-                [-Cnb + .5*Cnr*x - 2*mub*KZ2*x**2, Cnp + 4*mub*KXZ*x]])
-dutch = dutch.det()
-dutch_eig = np.array(solve(dutch,x))*V0/b
+    # SPIRAL
+    n = 2*CL*(Clb*Cnr - Cnb*Clr)
+    d = Clp*(CYb*Cnr + 4*mub*Cnb) - Cnp*(CYb*Clr + 4*mub*Clb)
+    sp_eig = n/d*V0/b
+    espiral = abs(np.abs(ap_eig) - np.abs(asym_eig[0]))/ np.abs(asym_eig[0])*100
+    errors.append(espiral)
+    # DUTCH ROLL + APERIODIC ROLL
+    dutch = Matrix([[-Clb + .5*Clr*x + 2*mub*KXZ*x**2, Clp - 4*mub*KX2*x],
+                    [-Cnb + .5*Cnr*x - 2*mub*KZ2*x**2, Cnp + 4*mub*KXZ*x]])
+    dutch = dutch.det()
+    dutch_eig = np.array(solve(dutch,x))*V0/b
+    edutch = abs(np.abs(ap_eig) - np.abs(asym_eig[0]))/ np.abs(asym_eig[0])*100
+    errors.append(edutch)
+
+print(errors)
+print(len(errors))
+print(sum(errors)/len(errors))
+#print(len(errors))
+#print(min(errors), max(errors))
+
+'''diffs = [28.9952597557432, 4.54933181675922, 34.154959393006976, 34.154959393006976, 5.32701300765764, 4.54933181675933, 12.206612524009307, 12.206612524009307, 18.3412337404280, 4.54933181675939, 9.741734344988364, 9.741734344988364, 42.0094804885135, 4.54933181675911, 31.690081213986048, 31.690081213986048, 65.6777272365992, 4.54933181675924, 53.6384280829837, 53.6384280829837]
+dx = 0.01
+
+print((sum(diffs)/len(diffs)))
+
+
+
+newdiffs = []
+print(round(diffs[0]))
+for i in diffs:
+    dev = np.round(i, 2)
+    newdiffs.append(dev)
+
+print(newdiffs)
+
+
+plt.plot(np.arange(0, len(newdiffs), 1), newdiffs)
+plt.show()'''
