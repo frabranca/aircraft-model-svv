@@ -1,23 +1,25 @@
 from math import *
 import numpy as np
-from numpy.linalg import *
 import control.matlab as ml
 import matplotlib.pyplot as plt
 import seaborn as sns
 # unit conversion
 kts = 0.514444
 
+
 #velocities
-V = np.array(np.arange(100,200,25)) * kts
+V = np.array([250, 218, 191]) * kts
 
 # plot labels
 sym_x = ['u', r'$\alpha$', r'$\theta$', r'$\frac{qc}{V}$']
 asym_x = [r'$\beta$', r'$\phi$', r'$\frac{pb}{2V}$', r'$\frac{rb}{2V}$']
 color = ['r', 'b', 'c', 'k']
 
-
 class ac:
-    def __init__(self, m=5579.791, initial=np.array([0.,0.,0.,0.]), hp0=5000, V0=V[0]):
+    def __init__(self, m=5579.791, initial=np.array([0.,0.,0.,0.]), hp0=5000, V0=100):
+    # Citation 550 - Linear simulation
+    # xcg = 0.25 * c
+    # Stationary flight condition
 
         self.hp0 = hp0      	      # pressure altitude in the stationary flight condition [m]
         self.V0 = V0           # true airspeed in the stationary flight condition [m/sec]
@@ -28,19 +30,21 @@ class ac:
         self.th0 = initial[2]
         self.q0 = initial[3]
 
+        # self.alpha0 = radians(5)            # angle of attack in the stationary flight condition [rad]
+        # self.th0 = radians(4)            # pitch angle in the stationary flight condition [rad]
         self.rho0, self.Temp0, self.R = 1.2250, 288.15, 287.05          # air density, temperature at sea level [kg/m^3, K] + GAS CONSTANT
         self.g = 9.81
         self.W = m*self.g           # [N]       (aircraft weight)
-        self.m = m
-        self.t = 200
+        self.m = self.W/self.g
         self.dt = 0.01
+        self.t = np.arange(0., 40.+self.dt, self.dt)
     # Aerodynamic properties
         self.e = 0.8            # Oswald factor [ ]
         self.CD0 = 0.04            # Zero lift drag coefficient [ ]
-        self.CLa = 5.084 #6.7770             # Slope of CL-alpha curve [ ]
+        self.CLa = 5.084            # Slope of CL-alpha curve [ ]
         # Longitudinal stability
-        self.Cma = -0.5626   #-0.29046636006796545          # longitudinal stabilty [ ]
-        self.Cmde = -1.1642 #-0.7626857630112688             # elevator effectiveness [ ]
+        self.Cma = -0.5626            # longitudinal stabilty [ ]
+        self.Cmde = -1.1642            # elevator effectiveness [ ]
 
         # Aircraft geometry
         self.S = 30.00	          # wing area [m^2]
@@ -53,7 +57,7 @@ class ac:
         self.bh = 5.791	          # stabiliser span [m]
         self.A = self.b ** 2 / self.S      # wing aspect ratio [ ]
         self.Ah = self.bh ** 2 / self.Sh    # stabiliser aspect ratio [ ]
-        #self.Vh_V = 1	          # [ ]
+        self.Vh_V = 1	          # [ ]
         self.ih = -2 * pi / 180   # stabiliser angle of incidence [rad]
 
         self.lam = -0.0065         # temperature gradient in ISA [K/m]
@@ -130,7 +134,9 @@ class ac:
                        [self.CZde],
                        [0],
                        [self.Cmde]])
-
+        # print(C1)
+        # print(C2)
+        # print(C3)
         self.A = -np.dot(np.linalg.inv(C1), C2)
         self.B = -np.dot(np.linalg.inv(C1), C3)
         self.C = np.eye(4)
@@ -140,9 +146,14 @@ class ac:
 
         return self.sys
 
-    def sym_response(self, x0, t = np.linspace(0,40,1000)):
+    def sym_response(self, x0, t):
         system = self.sym_system()
-        self.y, t = ml.impulse(system, t, x0)
+        self.y, self.t = ml.step(system, t, x0)
+        return self.y
+
+    def sym_impresponse(self, x0, t):
+        system = self.sym_system()
+        self.y, self.t = ml.impulse(system, t, x0)
         return self.y
 
     def sym_input_response(self, t, u, x0):
@@ -160,7 +171,7 @@ class ac:
         plt.subplot(221)
         plt.title('Normalized Velocity Change',fontsize=f)
         plt.plot(self.t, y[:,0], color[0], label=sym_x[0])
-        plt.grid()
+        # plt.grid()
         plt.legend(prop={'size': l})
         plt.xticks(fontsize=t)
         plt.yticks(fontsize=t)
@@ -168,7 +179,7 @@ class ac:
         plt.subplot(222)
         plt.title('Angle of attack',fontsize=f)
         plt.plot(self.t, y[:,1], color[1], label=sym_x[1])
-        plt.grid()
+        # plt.grid()
         plt.legend(prop={'size': l})
         plt.xticks(fontsize=t)
         plt.yticks(fontsize=t)
@@ -176,7 +187,7 @@ class ac:
         plt.subplot(223)
         plt.title('Pitch angle',fontsize=f)
         plt.plot(self.t, y[:,2], color[2], label=sym_x[2])
-        plt.grid()
+        # plt.grid()
         plt.legend(prop={'size': l})
         plt.xticks(fontsize=t)
         plt.yticks(fontsize=t)
@@ -188,10 +199,10 @@ class ac:
         plt.legend(prop={'size': l})
         plt.xticks(fontsize=t)
         plt.yticks(fontsize=t)
+
         plt.show()
 
-    def sym_eig(self):
-        return ml.damp(self.sym_system())
+    def sym_eig(self): return ml.damp(self.sym_system())
 
     # ASYMMETRIC
     def asym_system(self):
@@ -263,9 +274,156 @@ class ac:
         plt.plot(self.t, y[:,3], color[3], label=sym_x[3])
         plt.grid()
         plt.legend()
+
         plt.show()
 
-    def asym_eig(self):
-        return ml.damp(self.asym_system())
+    def asym_eig(self): return ml.damp(self.asym_system())
 
-ac.sym_plot()
+
+if __name__ == "__main__":
+    v = 100
+    c = 2.0569
+    b = 15.911
+    x0 = np.zeros(4)
+    ac1 = ac(initial=x0, V0=v)
+    t = np.linspace(0,60,500)
+    dt = t[1]-t[0]
+    u1 = np.zeros(np.size(t))
+    step = np.zeros(np.size(t))
+    impulse = np.zeros(np.size(t))
+    step[100:] = np.radians(t[100])*0.025
+    impulse[100] = np.radians(t[100])*0.025
+    u = np.zeros(np.size(t))
+    u[100:] = np.radians(t[100:])*0.025-np.radians(t[100])*0.025
+    uramp = np.zeros((2, np.size(t)))
+    uimpulse = np.zeros((2, np.size(t)))
+    ustep = np.zeros((2, np.size(t)))
+
+    ustep[0,:] = step
+    ustep[1,:] = u1
+    uimpulse[0,:] = impulse
+    uimpulse[1,:] = u1
+    uramp[0,:] = u
+    uramp[1,:] = u1
+    yramp = ac1.asym_input_response(t, uramp.T, x0)[0]
+    ystep = ac1.asym_input_response(t, ustep.T, x0)[0]
+    yimpulse = ac1.asym_input_response(t, uimpulse.T, x0)[0]
+    sns.set_theme()
+    plt.figure(figsize=(11, 9))
+    f = 11
+    phi = np.zeros(3)
+    phi[0] = yimpulse.T[1][-1]
+    phi[1] = ystep.T[1][-1]
+    phi[2] = yramp.T[1][-1]
+    phiint = np.zeros((3,np.size(t)))
+    phiint[0,:] = yimpulse.T[2]
+    phiint[1,:] = ystep.T[2]
+    phiint[2,:] = yramp.T[2]
+    phiint = np.sum(2*phiint*dt*v/b,axis=1)
+    print(phi, phiint, (phi-phiint)**2)
+    plt.subplot(221)
+    plt.title("Sideslip angle response", fontsize=f)
+    plt.ylabel(r"$\Delta\beta$ [rad]")
+    plt.plot(t, yimpulse.T[0],  label='impulse response')
+    plt.plot(t, ystep.T[0],  label='step response')
+    plt.plot(t, yramp.T[0],  label='ramp response')
+
+
+    plt.subplot(222)
+    plt.title("Roll angle response", fontsize=f)
+    plt.ylabel(r"$\Delta\phi$ [rad]")
+    plt.plot(t, yimpulse.T[1],  label='impulse response')
+    plt.plot(t, ystep.T[1],  label='step response')
+    plt.plot(t, yramp.T[1],  label='ramp response')
+
+    plt.subplot(223)
+    plt.title("Roll rate response", fontsize=f)
+    plt.ylabel(r"$p$ [rad]")
+    plt.xlabel("time [s]")
+    plt.plot(t, yimpulse.T[2],  label='impulse response')
+    plt.plot(t, ystep.T[2],  label='step response')
+    plt.plot(t, yramp.T[2],  label='ramp response')
+
+    plt.subplot(224)
+    plt.title("Yaw rate response", fontsize=f)
+    plt.ylabel(r"r [rad]")
+    plt.xlabel("time [s]")
+    plt.plot(t, yimpulse.T[3],  label='impulse response')
+    plt.plot(t, ystep.T[3],  label='step response')
+    plt.plot(t, yramp.T[3],  label='ramp response')
+    plt.legend(loc="best")
+    plt.show()
+
+    t = np.linspace(0,200,500)
+    ac = ac(initial=x0, V0=v)
+    u1 = np.zeros(np.size(t))
+    step = np.zeros(np.size(t))
+    impulse = np.zeros(np.size(t))
+    step[100:] = np.radians(t[100])*0.025
+    impulse[100] = np.radians(t[100])*0.025
+    u = np.zeros(np.size(t))
+    u[100:] = np.radians(t[100:])*0.025-np.radians(t[100])*0.025
+    yramp = ac.sym_input_response(t, u.T, x0)[0]
+    ystep = ac.sym_input_response(t, step.T, x0)[0]
+    yimpulse = ac.sym_input_response(t, impulse.T, x0)[0]
+
+    phi = np.zeros(3)
+    phi[0] = yimpulse.T[2][-1]
+    phi[1] = ystep.T[2][-1]
+    phi[2] = yramp.T[2][-1]
+    phiint = np.zeros((3,np.size(t)))
+    phiint[0,:] = yimpulse.T[3]
+    phiint[1,:] = ystep.T[3]
+    phiint[2,:] = yramp.T[3]
+    phiint = np.sum(phiint*dt*v/c,axis=1)
+    print(phi, phiint, (phi-phiint)**2)
+
+
+    plt.subplot(221)
+    plt.title("Unitless velocity response", fontsize=f)
+    plt.ylabel(r"$\hat{u}$ [-]")
+    plt.plot(t, yimpulse.T[0],  label='impulse response')
+    plt.plot(t, ystep.T[0],  label='step response')
+    plt.plot(t, yramp.T[0],  label='ramp response')
+
+
+    plt.subplot(222)
+    plt.title("Angle of attack response", fontsize=f)
+    plt.ylabel(r"$\Delta\alpha$ [rad]")
+    plt.plot(t, yimpulse.T[1],  label='impulse response')
+    plt.plot(t, ystep.T[1],  label='step response')
+    plt.plot(t, yramp.T[1],  label='ramp response')
+
+    plt.subplot(223)
+    plt.title("Flight angle response", fontsize=f)
+    plt.ylabel(r"$\Delta\theta$ [rad]")
+    plt.xlabel("time [s]")
+    plt.plot(t, yimpulse.T[2],  label='impulse response')
+    plt.plot(t, ystep.T[2],  label='step response')
+    plt.plot(t, yramp.T[2],  label='ramp response')
+
+    plt.subplot(224)
+    plt.title("Pitch rate response", fontsize=f)
+    plt.ylabel(r"q [rad]")
+    plt.xlabel("time [s]")
+    plt.plot(t, yimpulse.T[3],  label='impulse response')
+    plt.plot(t, ystep.T[3],  label='step response')
+    plt.plot(t, yramp.T[3],  label='ramp response')
+    plt.legend(loc="best")
+    plt.show()
+
+    plt.subplot(131)
+    plt.ylabel(r"deflection [rad]")
+    plt.xlabel("time [s]")
+    plt.plot(t, impulse, c="r", label="impulse function")
+
+    plt.subplot(132)
+    plt.ylabel(r"deflection [rad]")
+    plt.xlabel("time [s]")
+    plt.plot(t, step, c = "r", label="step function")
+
+    plt.subplot(133)
+    plt.ylabel(r"deflection [rad]")
+    plt.xlabel("time [s]")
+    plt.plot(t, u, c = "r", label="ramp function")
+    plt.show()

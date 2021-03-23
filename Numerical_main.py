@@ -15,7 +15,6 @@ sym_x = ['u', r'$\alpha$', r'$\theta$', r'$\frac{qc}{V}$']
 asym_x = [r'$\beta$', r'$\phi$', r'$\frac{pb}{2V}$', r'$\frac{rb}{2V}$']
 color = ['r', 'b', 'c', 'k']
 
-
 class ac:
     def __init__(self, m=5579.791, initial=np.array([0.,0.,0.,0.]), hp0=5000, V0=100):
 
@@ -266,4 +265,3 @@ class ac:
 
     def asym_eig(self):
         return ml.damp(self.asym_system())
-

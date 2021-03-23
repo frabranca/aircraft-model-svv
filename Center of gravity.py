@@ -19,7 +19,7 @@ m_dot = 0.048  # kg/s
 cg_bem = 291.65 * meters # m
 req = [276.1*meters, 285.8*meters]
 
-fu = fu * kg  # converts in kg
+fu = fu * kg
 
 t_bchange = (51*60 + 44)
 begin_ind = np.where(t == t_bchange)[0][0]
@@ -144,10 +144,8 @@ plt.title("CG excursion over time")
 plt.xlabel("Time [s]")
 plt.ylabel("CG_x [m]")
 #plt.plot(t, cg_change_list, label="8 to 9")
-plt.plot(t, cg_final, color="green", label="CG_x")
-plt.axvline(t_bchange, color='grey', linestyle='dotted', label="t1")
-plt.axvline(t_echange, color='grey', linestyle='dotted', label="t2")
-plt.legend()
+plt.plot(t, cg_final, color="green")
+
 
 plt.subplot(122)
 plt.title("Aircraft's mass over time")
