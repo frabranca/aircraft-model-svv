@@ -51,7 +51,6 @@ class ac:
         self.bh = 5.791	          # stabiliser span [m]
         self.A = self.b ** 2 / self.S      # wing aspect ratio [ ]
         self.Ah = self.bh ** 2 / self.Sh    # stabiliser aspect ratio [ ]
-        #self.Vh_V = 1	          # [ ]
         self.ih = -2 * pi / 180   # stabiliser angle of incidence [rad]
 
         self.lam = -0.0065         # temperature gradient in ISA [K/m]

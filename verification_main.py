@@ -17,36 +17,37 @@ color = ['r', 'b', 'c', 'k']
 
 class ac:
     def __init__(self, m=5579.791, initial=np.array([0.,0.,0.,0.]), hp0=5000, V0=100):
-    # Citation 550 - Linear simulation
-    # xcg = 0.25 * c
-    # Stationary flight condition
 
         self.hp0 = hp0      	      # pressure altitude in the stationary flight condition [m]
-        self.V0 = V0           # true airspeed in the stationary flight condition [m/sec]
+        self.V0 = V0                  # true airspeed in the stationary flight condition [m/sec]
 
         # initial conditions
+
         self.u0 = initial[0]
         self.a0 = initial[1]
         self.th0 = initial[2]
         self.q0 = initial[3]
 
-        # self.alpha0 = radians(5)            # angle of attack in the stationary flight condition [rad]
-        # self.th0 = radians(4)            # pitch angle in the stationary flight condition [rad]
         self.rho0, self.Temp0, self.R = 1.2250, 288.15, 287.05          # air density, temperature at sea level [kg/m^3, K] + GAS CONSTANT
         self.g = 9.81
         self.W = m*self.g           # [N]       (aircraft weight)
         self.m = self.W/self.g
         self.dt = 0.01
         self.t = np.arange(0., 40.+self.dt, self.dt)
-    # Aerodynamic properties
+
+        # Aerodynamic properties
+
         self.e = 0.8            # Oswald factor [ ]
         self.CD0 = 0.04            # Zero lift drag coefficient [ ]
         self.CLa = 5.084            # Slope of CL-alpha curve [ ]
+
         # Longitudinal stability
+
         self.Cma = -0.5626            # longitudinal stabilty [ ]
         self.Cmde = -1.1642            # elevator effectiveness [ ]
 
         # Aircraft geometry
+
         self.S = 30.00	          # wing area [m^2]
         self.Sh = 0.2 * self.S         # stabiliser area [m^2]
         self.Sh_S = self.Sh / self.S	          # [ ]
@@ -64,7 +65,6 @@ class ac:
         self.rho = self.rho0 * pow( ((1+(self.lam * self.hp0 / self.Temp0))), (-((self.g / (self.lam * self.R)) + 1)))
         self.muc = self.m / (self.rho * self.S * self.c)
         self.mub = self.m / (self.rho * self.S * self.b)
-
         self.KX2, self.KZ2, self.KXZ, self.KY2 = 0.019, 0.042, 0.002, 1.25 * 1.114
 
         # Aerodynamic constants
@@ -134,9 +134,7 @@ class ac:
                        [self.CZde],
                        [0],
                        [self.Cmde]])
-        # print(C1)
-        # print(C2)
-        # print(C3)
+
         self.A = -np.dot(np.linalg.inv(C1), C2)
         self.B = -np.dot(np.linalg.inv(C1), C3)
         self.C = np.eye(4)
@@ -179,7 +177,6 @@ class ac:
         plt.subplot(222)
         plt.title('Angle of attack',fontsize=f)
         plt.plot(self.t, y[:,1], color[1], label=sym_x[1])
-        # plt.grid()
         plt.legend(prop={'size': l})
         plt.xticks(fontsize=t)
         plt.yticks(fontsize=t)
@@ -187,7 +184,6 @@ class ac:
         plt.subplot(223)
         plt.title('Pitch angle',fontsize=f)
         plt.plot(self.t, y[:,2], color[2], label=sym_x[2])
-        # plt.grid()
         plt.legend(prop={'size': l})
         plt.xticks(fontsize=t)
         plt.yticks(fontsize=t)
