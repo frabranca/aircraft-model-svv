@@ -4,6 +4,13 @@ import Numerical_main as nm
 from matplotlib import pyplot as plt
 import seaborn as sns
 
+"""
+Validation code for ASYMMETRIC MOTIONS:
+In order to navigate between motions use control+f command to select all instances
+of the current motion then change them to a motion of interest. For the nomenclature 
+of the motions see bottom of the file "flightdataprocessing. 
+"""
+
 class modeasym():
     def __init__(self, data):
         self.cond, self.tplot, self.phiplot, self.rplot, self.pplot, self.daplot, self.drplot = data
