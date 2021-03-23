@@ -1,7 +1,7 @@
 from math import *
 import numpy as np
 import control.matlab as ml
-from analytical_main import ac
+from Numerical_main import ac
 import matplotlib.pyplot as plt
 ac = ac(hp0=5000)
 kts = 0.514444
@@ -89,7 +89,7 @@ Cnda = -0.0120
 Cndr = -0.0939
 
 # NUMERICAL MODEL----------------------------------------------
-sym = ac.sym_system(V0)
+sym = ac.sym_system()
 symfunc = ml.damp(sym, doprint=False)
 sym_freq = symfunc[0]
 sym_damp = symfunc[1]
@@ -99,11 +99,12 @@ print(sym_eig)
 short_num = sym_eig[0:2] # SHORT PERIOD
 phug_num = sym_eig[2:4] # PHUGOID
 
-asym = ac.asym_system(V0)
+asym = ac.asym_system()
 asymfunc = ml.damp(asym, doprint=False)
 asym_freq = asymfunc[0]
 asym_damp = asymfunc[1]
 asym_eig = asymfunc[2]
+print(asym_eig)
 
 #ANALYTICAL MODEL-----------------------------------------------
 from sympy import *
@@ -125,8 +126,9 @@ phug = Matrix([[CXu - 2*muc*x, CXa, CZ0, CXq],
 #                [0, 0, -x, 1],
 #                [Cmu, Cma, 0, Cmq]])
 phug = phug.det()
-phug_eig = np.array(solve(phug,x))*V0/c
+phug_eig = np.array(solve(phug, x)) * V0 / c
 ephug = abs(np.abs(phug_eig[0]) - np.abs(sym_eig[0])) # / np.abs(phug_eig[0])*100
+print("analytical phugoid")
 print(phug_eig)
 
 # a = -4*muc**2
