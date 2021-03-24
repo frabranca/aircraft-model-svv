@@ -1,28 +1,22 @@
-from Numerical_main import ac, given
+from Numerical_main import ac
 import numpy as np
 import matplotlib.pyplot as plt
 from flightdataprocessing import short_data
 import seaborn as sns
 
+"""
+MODEL MATCHING FOR SYMMETRIC MOTION: 
+switch short_data to phugoid_data to visualize a different motion.
+"""
+
 cond, tplot, uplot, aplot, thplot, qplot, deplot = short_data
 cond = cond.T[0]
 x0 = cond[4:8]
-# x0 = x0.T[0]
 
-# SHORT PERIOD Cmq =  -0.6
-# PHUGOID CXq = not crucialn Cmq used to compensate other coefficients (-3.8)
+# PHUGOID CXq = not crucial Cmq used to compensate other coefficients (-3.8)
 
-# Cma = -0.10162
-# Cmde = -1.0
-# CLa, CD0, e, Cmde, Cma, Cmq, CZq
-# Cmq, Cmde, Cma have largest effect
-# CZ0 important for phugoid (+0.02)
-
-new    = np.array([5.084, 0.04,      0.8,  -1.1642,  -0.5626, -8.79415, -5.66290])
-flight = np.array([6.778, 0.0275, 0.5355, -0.79197, -0.30162, -8.79415, -5.66290])
-print(given)
-ac1 = ac(m=cond[0], deriv=given, initial=x0, hp0=cond[1], V0=cond[2])
-ac2 = ac(m=cond[0], deriv=new, initial=x0, hp0=cond[1], V0=cond[2])
+ac1 = ac(m=cond[0], initial=x0, hp0=cond[1], V0=cond[2])
+ac2 = ac(m=cond[0], initial=x0, hp0=cond[1], V0=cond[2])
 
 ac2.Cmq    = -7.2
 # ac2.Cmadot = -5.
