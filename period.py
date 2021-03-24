@@ -6,7 +6,7 @@ from flightdataprocessing import phugoid_data
 from validation_sym import modesym
 
 """
-PERIOD CALCULATION FOR PHUGOID MOTON: this code finds period and amplitude
+PERIOD CALCULATION FOR PHUGOID MOTION: this code finds period and amplitude
  for the phugoid motion from the flight data. Two methods are used:
  - computing fitting function
  - finding distance between peaks 
